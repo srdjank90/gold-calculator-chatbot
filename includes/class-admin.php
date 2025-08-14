@@ -1062,4 +1062,18 @@ class GCC_Admin {
         }
     }
     
+    public function import_csv_products() {
+        // This method can be called to import the CSV products
+        // The CSV data has been implemented in the database class
+        
+        if (!class_exists('GCC_Database')) {
+            require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
+        }
+        $database = new GCC_Database();
+        
+        // Note: The actual CSV data should be passed as parameter
+        // This is just a placeholder method - implement as needed
+        echo "CSV import method ready. Use database->import_products_from_csv() with your CSV data.";
+    }
+    
 }

@@ -1,52 +1,58 @@
 <?php
 
-class GCC_Email_Handler {
-    
-    public function __construct() {
+class GCC_Email_Handler
+{
+
+    public function __construct()
+    {
         // Set up email hooks if needed
     }
-    
-    public function send_quote_emails($quote_data, $ticket_number) {
+
+    public function send_quote_emails($quote_data, $ticket_number)
+    {
         $owner_email_sent = $this->send_owner_notification($quote_data, $ticket_number);
         $customer_email_sent = $this->send_customer_confirmation($quote_data, $ticket_number);
-        
+
         return $owner_email_sent && $customer_email_sent;
     }
-    
-    private function send_owner_notification($quote_data, $ticket_number) {
+
+    private function send_owner_notification($quote_data, $ticket_number)
+    {
         $to = get_option('gcc_notification_email', get_option('admin_email'));
-        $subject = 'Nova zahtev za ponudu - ' . $ticket_number;
-        
+        $subject = 'Novi zahtev za ponudu - ' . $ticket_number;
+
         $message = $this->generate_owner_email_content($quote_data, $ticket_number);
-        
+
         $site_domain = parse_url(get_site_url(), PHP_URL_HOST);
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'From: Gold Calculator <noreply@' . $site_domain . '>'
         );
-        
+
         return wp_mail($to, $subject, $message, $headers);
     }
-    
-    private function send_customer_confirmation($quote_data, $ticket_number) {
+
+    private function send_customer_confirmation($quote_data, $ticket_number)
+    {
         $to = $quote_data['email'];
         $subject = 'Potvrda zahteva za ponudu - ' . $ticket_number;
-        
+
         $message = $this->generate_customer_email_content($quote_data, $ticket_number);
-        
+
         $site_domain = parse_url(get_site_url(), PHP_URL_HOST);
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'From: Gold Calculator <noreply@' . $site_domain . '>'
         );
-        
+
         return wp_mail($to, $subject, $message, $headers);
     }
-    
-    private function generate_owner_email_content($quote_data, $ticket_number) {
+
+    private function generate_owner_email_content($quote_data, $ticket_number)
+    {
         $exchange_rate = get_option('gcc_exchange_rate', 117.5);
         $total_rsd = $quote_data['total_value'] * $exchange_rate;
-        
+
         $products_html = '';
         if (!empty($quote_data['selected_products'])) {
             $products_html = '<h3>Odabrani proizvodi:</h3><ul>';
@@ -62,11 +68,11 @@ class GCC_Email_Handler {
             }
             $products_html .= '</ul>';
         }
-        
+
         $delivery_method_text = $quote_data['delivery_method'] === 'stock' ? 'Sa stanja' : 'Avansna isplata';
         $product_type_text = $this->get_product_type_text($quote_data['product_type']);
         $weight_preference_text = $this->get_weight_preference_text($quote_data['weight_preference']);
-        
+
         $html = '
         <html>
         <head>
@@ -114,16 +120,17 @@ class GCC_Email_Handler {
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
-    
-    private function generate_customer_email_content($quote_data, $ticket_number) {
+
+    private function generate_customer_email_content($quote_data, $ticket_number)
+    {
         $template = get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.');
         $exchange_rate = get_option('gcc_exchange_rate', 117.5);
         $total_rsd = $quote_data['total_value'] * $exchange_rate;
         $notification_email = get_option('gcc_notification_email', get_option('admin_email'));
-        
+
         $products_html = '';
         if (!empty($quote_data['selected_products'])) {
             $products_html = '<h3>Vaš odabir:</h3><ul>';
@@ -138,7 +145,7 @@ class GCC_Email_Handler {
             }
             $products_html .= '</ul>';
         }
-        
+
         $html = '
         <html>
         <head>
@@ -191,11 +198,12 @@ class GCC_Email_Handler {
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
-    
-    private function get_product_type_text($type) {
+
+    private function get_product_type_text($type)
+    {
         switch ($type) {
             case 'bars':
                 return 'Samo poluge';
@@ -207,8 +215,9 @@ class GCC_Email_Handler {
                 return $type;
         }
     }
-    
-    private function get_weight_preference_text($preference) {
+
+    private function get_weight_preference_text($preference)
+    {
         switch ($preference) {
             case 'lighter':
                 return 'Više lakših poluga';

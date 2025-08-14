@@ -132,7 +132,7 @@ class GCC_Database
         dbDelta($sql_personas);
         dbDelta($sql_questions);
 
-        // Insert sample products and personas
+        // Insert default products and personas only if tables are empty
         $this->insert_sample_products();
         $this->insert_default_personas();
         $this->insert_default_questions();
@@ -145,37 +145,19 @@ class GCC_Database
 
         $sample_products = array(
             array(
-                'name' => 'Zlatna poluga 1g',
-                'description' => 'Kvalitetna zlatna poluga od 1 grama',
-                'article_number' => 'ZP-001',
+                'name' => 'Zlatna poluga 1g PAMP Suisse',
+                'description' => 'Zlatna poluga renomiranog švajcarskog proizvođača PAMP Suisse. Čistoća 999.9 finoga zlata.',
+                'external_id' => 'ZP001-1',
+                'external_id' => 'ZP001-1',
                 'type' => 'bar',
                 'weight' => '1g',
                 'price_net' => 80.00,
                 'price_gross' => 95.00,
-                'number_products' => 10,
+                'number_products' => 1000,
                 'status' => 'published',
                 'featured_image' => '',
-                'buying_price' => 85.00,
+                'buying_price' => 80.00,
                 'selling_price' => 95.00,
-                'image_url' => '',
-                'stock_available' => 1,
-                'advance_payment_available' => 1,
-                'stock_markup_percent' => 5.0,
-                'advance_discount_percent' => 3.0
-            ),
-            array(
-                'name' => 'Zlatna poluga 2g',
-                'description' => 'Kvalitetna zlatna poluga od 2 grama',
-                'article_number' => 'ZP-002',
-                'type' => 'bar',
-                'weight' => '2g',
-                'price_net' => 160.00,
-                'price_gross' => 185.00,
-                'number_products' => 8,
-                'status' => 'published',
-                'featured_image' => '',
-                'buying_price' => 170.00,
-                'selling_price' => 185.00,
                 'image_url' => '',
                 'stock_available' => 1,
                 'advance_payment_available' => 1,
@@ -183,36 +165,198 @@ class GCC_Database
                 'advance_discount_percent' => 3.0
             ),
             array(
-                'name' => 'Zlatna poluga 5g',
-                'description' => 'Kvalitetna zlatna poluga od 5 grama',
-                'article_number' => 'ZP-005',
+                'name' => 'Zlatna poluga 2.5g PAMP Suisse',
+                'description' => 'Zlatna poluga PAMP Suisse u veracash blisteru. Garantovana autentičnost i čistoća.',
+                'external_id' => 'ZP001-2',
+                'external_id' => 'ZP001-2',
+                'type' => 'bar',
+                'weight' => '2.5g',
+                'price_net' => 200.00,
+                'price_gross' => 220.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 200.00,
+                'selling_price' => 220.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 5g PAMP Suisse',
+                'description' => 'Zlatna poluga PAMP Suisse 999.9. Dolazi u originalnom blisteru sa certifikatom.',
+                'external_id' => 'ZP001-3',
+                'external_id' => 'ZP001-3',
                 'type' => 'bar',
                 'weight' => '5g',
                 'price_net' => 400.00,
                 'price_gross' => 435.00,
-                'number_products' => 15,
+                'number_products' => 1000,
                 'status' => 'published',
                 'featured_image' => '',
-                'buying_price' => 415.00,
+                'buying_price' => 400.00,
                 'selling_price' => 435.00,
                 'image_url' => '',
                 'stock_available' => 1,
                 'advance_payment_available' => 1,
-                'stock_markup_percent' => 3.0,
+                'stock_markup_percent' => 4.0,
                 'advance_discount_percent' => 3.0
             ),
             array(
-                'name' => 'Dukat - Franc Jozef',
-                'description' => 'Austrijski dukat Franca Jozefa',
-                'article_number' => 'DU-001',
+                'name' => 'Zlatna poluga 10g PAMP Suisse',
+                'description' => 'Zlatna poluga od 10 grama PAMP Suisse. Investicijska čistoća zlata 999.9.',
+                'external_id' => 'ZP001-4',
+                'external_id' => 'ZP001-4',
+                'type' => 'bar',
+                'weight' => '10g',
+                'price_net' => 800.00,
+                'price_gross' => 850.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 800.00,
+                'selling_price' => 850.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 20g PAMP Suisse',
+                'description' => 'Zlatna poluga 20 grama PAMP Suisse. Standardni format za investicije u zlato.',
+                'external_id' => 'ZP001-5',
+                'external_id' => 'ZP001-5',
+                'type' => 'bar',
+                'weight' => '20g',
+                'price_net' => 1600.00,
+                'price_gross' => 1700.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1600.00,
+                'selling_price' => 1700.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 50g PAMP Suisse',
+                'description' => 'Zlatna poluga 50 grama PAMP Suisse. Velik investicijski format sa nižom premijom.',
+                'external_id' => 'ZP001-6',
+                'external_id' => 'ZP001-6',
+                'type' => 'bar',
+                'weight' => '50g',
+                'price_net' => 4000.00,
+                'price_gross' => 4200.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 4000.00,
+                'selling_price' => 4200.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 100g PAMP Suisse',
+                'description' => 'Zlatna poluga 100 grama PAMP Suisse. Veliki investicijski format.',
+                'external_id' => 'ZP001-7',
+                'external_id' => 'ZP001-7',
+                'type' => 'bar',
+                'weight' => '100g',
+                'price_net' => 8000.00,
+                'price_gross' => 8400.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 8000.00,
+                'selling_price' => 8400.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 250g PAMP Suisse',
+                'description' => 'Zlatna poluga 250 grama PAMP Suisse. Profesionalni investicijski format.',
+                'external_id' => 'ZP001-8',
+                'external_id' => 'ZP001-8',
+                'type' => 'bar',
+                'weight' => '250g',
+                'price_net' => 20000.00,
+                'price_gross' => 20500.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 20000.00,
+                'selling_price' => 20500.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 500g PAMP Suisse',
+                'description' => 'Zlatna poluga 500 grama PAMP Suisse. Veliki investicijski format sa najnižom premijom.',
+                'external_id' => 'ZP001-9',
+                'external_id' => 'ZP001-9',
+                'type' => 'bar',
+                'weight' => '500g',
+                'price_net' => 40000.00,
+                'price_gross' => 41000.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 40000.00,
+                'selling_price' => 41000.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 1000g (1kg) PAMP Suisse',
+                'description' => 'Zlatna poluga 1 kilogram PAMP Suisse. Standardni investicijski format za velike investicije.',
+                'external_id' => 'ZP001-10',
+                'external_id' => 'ZP001-10',
+                'type' => 'bar',
+                'weight' => '1000g',
+                'price_net' => 80000.00,
+                'price_gross' => 82000.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 80000.00,
+                'selling_price' => 82000.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Dukat - Austrijski Franc Jozef I',
+                'description' => 'Austrijski dukat Franca Jozefa I. Istorijska zlatna kovanica čistoće 986.',
+                'external_id' => 'DU-001',
+                'external_id' => 'DU-001',
                 'type' => 'ducat',
                 'weight' => '3.49g',
                 'price_net' => 270.00,
                 'price_gross' => 310.00,
-                'number_products' => 5,
+                'number_products' => 1000,
                 'status' => 'published',
                 'featured_image' => '',
-                'buying_price' => 285.00,
+                'buying_price' => 270.00,
                 'selling_price' => 310.00,
                 'image_url' => '',
                 'stock_available' => 1,
@@ -221,22 +365,583 @@ class GCC_Database
                 'advance_discount_percent' => 3.0
             ),
             array(
-                'name' => 'Dukat - Četiri Florensa',
-                'description' => 'Austrijski dukat od četiri florensa',
-                'article_number' => 'DU-004',
+                'name' => 'Dukat - Austrijski Četiri Florensa',
+                'description' => 'Austrijski dukat od četiri florensa. Težak 13.96g čistoća 986.',
+                'external_id' => 'DU-002',
+                'external_id' => 'DU-002',
                 'type' => 'ducat',
                 'weight' => '13.96g',
                 'price_net' => 1100.00,
                 'price_gross' => 1200.00,
-                'number_products' => 3,
+                'number_products' => 1000,
                 'status' => 'published',
                 'featured_image' => '',
-                'buying_price' => 1150.00,
+                'buying_price' => 1100.00,
                 'selling_price' => 1200.00,
                 'image_url' => '',
                 'stock_available' => 1,
                 'advance_payment_available' => 1,
-                'stock_markup_percent' => 3.0,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Britannia 1oz',
+                'description' => 'Britanska zlatna kovanica Britannia od jedne unce. Čistoća 999.9.',
+                'external_id' => 'BR-001',
+                'external_id' => 'BR-001',
+                'type' => 'ducat',
+                'weight' => '31.1g',
+                'price_net' => 2400.00,
+                'price_gross' => 2550.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2400.00,
+                'selling_price' => 2550.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Britannia 1/2oz',
+                'description' => 'Britanska zlatna kovanica Britannia od pola unce. Čistoća 999.9.',
+                'external_id' => 'BR-002',
+                'external_id' => 'BR-002',
+                'type' => 'ducat',
+                'weight' => '15.55g',
+                'price_net' => 1250.00,
+                'price_gross' => 1350.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1250.00,
+                'selling_price' => 1350.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Britannia 1/4oz',
+                'description' => 'Britanska zlatna kovanica Britannia od četvrt unce. Čistoća 999.9.',
+                'external_id' => 'BR-003',
+                'external_id' => 'BR-003',
+                'type' => 'ducat',
+                'weight' => '7.78g',
+                'price_net' => 650.00,
+                'price_gross' => 720.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 650.00,
+                'selling_price' => 720.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Britannia 1/10oz',
+                'description' => 'Britanska zlatna kovanica Britannia od desetine unce. Čistoća 999.9.',
+                'external_id' => 'BR-004',
+                'external_id' => 'BR-004',
+                'type' => 'ducat',
+                'weight' => '3.11g',
+                'price_net' => 280.00,
+                'price_gross' => 320.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 280.00,
+                'selling_price' => 320.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Philharmoniker 1oz',
+                'description' => 'Austrijska zlatna kovanica Philharmoniker od jedne unce. Čistoća 999.9.',
+                'external_id' => 'PH-001',
+                'external_id' => 'PH-001',
+                'type' => 'ducat',
+                'weight' => '31.1g',
+                'price_net' => 2450.00,
+                'price_gross' => 2600.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2450.00,
+                'selling_price' => 2600.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Philharmoniker 1/2oz',
+                'description' => 'Austrijska zlatna kovanica Philharmoniker od pola unce. Čistoća 999.9.',
+                'external_id' => 'PH-002',
+                'external_id' => 'PH-002',
+                'type' => 'ducat',
+                'weight' => '15.55g',
+                'price_net' => 1280.00,
+                'price_gross' => 1380.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1280.00,
+                'selling_price' => 1380.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Philharmoniker 1/4oz',
+                'description' => 'Austrijska zlatna kovanica Philharmoniker od četvrt unce. Čistoća 999.9.',
+                'external_id' => 'PH-003',
+                'external_id' => 'PH-003',
+                'type' => 'ducat',
+                'weight' => '7.78g',
+                'price_net' => 670.00,
+                'price_gross' => 740.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 670.00,
+                'selling_price' => 740.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Philharmoniker 1/10oz',
+                'description' => 'Austrijska zlatna kovanica Philharmoniker od desetine unce. Čistoća 999.9.',
+                'external_id' => 'PH-004',
+                'external_id' => 'PH-004',
+                'type' => 'ducat',
+                'weight' => '3.11g',
+                'price_net' => 290.00,
+                'price_gross' => 330.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 290.00,
+                'selling_price' => 330.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Krügerrand 1oz',
+                'description' => 'Južnoafrička zlatna kovanica Krügerrand od jedne unce. Čistoća 916.7.',
+                'external_id' => 'KR-001',
+                'external_id' => 'KR-001',
+                'type' => 'ducat',
+                'weight' => '33.93g',
+                'price_net' => 2350.00,
+                'price_gross' => 2500.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2350.00,
+                'selling_price' => 2500.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Krügerrand 1/2oz',
+                'description' => 'Južnoafrička zlatna kovanica Krügerrand od pola unce. Čistoća 916.7.',
+                'external_id' => 'KR-002',
+                'external_id' => 'KR-002',
+                'type' => 'ducat',
+                'weight' => '16.97g',
+                'price_net' => 1200.00,
+                'price_gross' => 1300.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1200.00,
+                'selling_price' => 1300.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Krügerrand 1/4oz',
+                'description' => 'Južnoafrička zlatna kovanica Krügerrand od četvrt unce. Čistoća 916.7.',
+                'external_id' => 'KR-003',
+                'external_id' => 'KR-003',
+                'type' => 'ducat',
+                'weight' => '8.48g',
+                'price_net' => 620.00,
+                'price_gross' => 690.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 620.00,
+                'selling_price' => 690.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Krügerrand 1/10oz',
+                'description' => 'Južnoafrička zlatna kovanica Krügerrand od desetine unce. Čistoća 916.7.',
+                'external_id' => 'KR-004',
+                'external_id' => 'KR-004',
+                'type' => 'ducat',
+                'weight' => '3.39g',
+                'price_net' => 270.00,
+                'price_gross' => 310.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 270.00,
+                'selling_price' => 310.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Maple Leaf 1oz',
+                'description' => 'Kanadska zlatna kovanica Maple Leaf od jedne unce. Čistoća 999.9.',
+                'external_id' => 'ML-001',
+                'external_id' => 'ML-001',
+                'type' => 'ducat',
+                'weight' => '31.1g',
+                'price_net' => 2480.00,
+                'price_gross' => 2630.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2480.00,
+                'selling_price' => 2630.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Maple Leaf 1/2oz',
+                'description' => 'Kanadska zlatna kovanica Maple Leaf od pola unce. Čistoća 999.9.',
+                'external_id' => 'ML-002',
+                'external_id' => 'ML-002',
+                'type' => 'ducat',
+                'weight' => '15.55g',
+                'price_net' => 1300.00,
+                'price_gross' => 1400.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1300.00,
+                'selling_price' => 1400.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Maple Leaf 1/4oz',
+                'description' => 'Kanadska zlatna kovanica Maple Leaf od četvrt unce. Čistoća 999.9.',
+                'external_id' => 'ML-003',
+                'external_id' => 'ML-003',
+                'type' => 'ducat',
+                'weight' => '7.78g',
+                'price_net' => 690.00,
+                'price_gross' => 760.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 690.00,
+                'selling_price' => 760.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik Maple Leaf 1/10oz',
+                'description' => 'Kanadska zlatna kovanica Maple Leaf od desetine unce. Čistoća 999.9.',
+                'external_id' => 'ML-004',
+                'external_id' => 'ML-004',
+                'type' => 'ducat',
+                'weight' => '3.11g',
+                'price_net' => 300.00,
+                'price_gross' => 340.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 300.00,
+                'selling_price' => 340.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik American Eagle 1oz',
+                'description' => 'Američka zlatna kovanica American Eagle od jedne unce. Čistoća 916.7.',
+                'external_id' => 'AE-001',
+                'external_id' => 'AE-001',
+                'type' => 'ducat',
+                'weight' => '33.93g',
+                'price_net' => 2520.00,
+                'price_gross' => 2670.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2520.00,
+                'selling_price' => 2670.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik American Eagle 1/2oz',
+                'description' => 'Američka zlatna kovanica American Eagle od pola unce. Čistoća 916.7.',
+                'external_id' => 'AE-002',
+                'external_id' => 'AE-002',
+                'type' => 'ducat',
+                'weight' => '16.97g',
+                'price_net' => 1330.00,
+                'price_gross' => 1430.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1330.00,
+                'selling_price' => 1430.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik American Eagle 1/4oz',
+                'description' => 'Američka zlatna kovanica American Eagle od četvrt unce. Čistoća 916.7.',
+                'external_id' => 'AE-003',
+                'external_id' => 'AE-003',
+                'type' => 'ducat',
+                'weight' => '8.48g',
+                'price_net' => 710.00,
+                'price_gross' => 780.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 710.00,
+                'selling_price' => 780.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatnik American Eagle 1/10oz',
+                'description' => 'Američka zlatna kovanica American Eagle od desetine unce. Čistoća 916.7.',
+                'external_id' => 'AE-004',
+                'external_id' => 'AE-004',
+                'type' => 'ducat',
+                'weight' => '3.39g',
+                'price_net' => 310.00,
+                'price_gross' => 350.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 310.00,
+                'selling_price' => 350.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 1oz Heraeus',
+                'description' => 'Zlatna poluga od jedne unce nemačkog proizvođača Heraeus. Čistoća 999.9.',
+                'external_id' => 'HE-001',
+                'external_id' => 'HE-001',
+                'type' => 'bar',
+                'weight' => '31.1g',
+                'price_net' => 2400.00,
+                'price_gross' => 2520.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2400.00,
+                'selling_price' => 2520.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 25x1g PAMP Suisse Multicard',
+                'description' => 'Multicard sa 25 zlatnih poluga od 1 grama. Svaka poluga je u posebnom perforiranom blisteru.',
+                'external_id' => 'ZP001-MC25',
+                'external_id' => 'ZP001-MC25',
+                'type' => 'bar',
+                'weight' => '25g',
+                'price_net' => 2000.00,
+                'price_gross' => 2200.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 2000.00,
+                'selling_price' => 2200.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 10x1g PAMP Suisse Multicard',
+                'description' => 'Multicard sa 10 zlatnih poluga od 1 grama. Idealno za darove ili manje investicije.',
+                'external_id' => 'ZP001-MC10',
+                'external_id' => 'ZP001-MC10',
+                'type' => 'bar',
+                'weight' => '10g',
+                'price_net' => 850.00,
+                'price_gross' => 920.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 850.00,
+                'selling_price' => 920.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna poluga 5x1g PAMP Suisse Multicard',
+                'description' => 'Multicard sa 5 zlatnih poluga od 1 grama. Perfekcija švajcarskog kvaliteta.',
+                'external_id' => 'ZP001-MC5',
+                'external_id' => 'ZP001-MC5',
+                'type' => 'bar',
+                'weight' => '5g',
+                'price_net' => 450.00,
+                'price_gross' => 500.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 450.00,
+                'selling_price' => 500.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna pločica Argor Heraeus 10g',
+                'description' => 'Zlatna pločica švajcarsko-nemačke proizvodnje. Investicijska čistoća 999.9.',
+                'external_id' => 'AH-001',
+                'external_id' => 'AH-001',
+                'type' => 'bar',
+                'weight' => '10g',
+                'price_net' => 820.00,
+                'price_gross' => 880.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 820.00,
+                'selling_price' => 880.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna pločica Argor Heraeus 20g',
+                'description' => 'Zlatna pločica 20 grama Argor Heraeus. Investicijski format sa certifikatom.',
+                'external_id' => 'AH-002',
+                'external_id' => 'AH-002',
+                'type' => 'bar',
+                'weight' => '20g',
+                'price_net' => 1620.00,
+                'price_gross' => 1720.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 1620.00,
+                'selling_price' => 1720.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna pločica Valcambi 50g',
+                'description' => 'Zlatna pločica švajcarskog proizvođača Valcambi. Format 50g sa hologramom.',
+                'external_id' => 'VC-001',
+                'external_id' => 'VC-001',
+                'type' => 'bar',
+                'weight' => '50g',
+                'price_net' => 4050.00,
+                'price_gross' => 4250.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 4050.00,
+                'selling_price' => 4250.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
+                'advance_discount_percent' => 3.0
+            ),
+            array(
+                'name' => 'Zlatna pločica Valcambi 100g',
+                'description' => 'Zlatna pločica 100 grama Valcambi. Profesionalni investicijski format.',
+                'external_id' => 'VC-002',
+                'external_id' => 'VC-002',
+                'type' => 'bar',
+                'weight' => '100g',
+                'price_net' => 8100.00,
+                'price_gross' => 8500.00,
+                'number_products' => 1000,
+                'status' => 'published',
+                'featured_image' => '',
+                'buying_price' => 8100.00,
+                'selling_price' => 8500.00,
+                'image_url' => '',
+                'stock_available' => 1,
+                'advance_payment_available' => 1,
+                'stock_markup_percent' => 4.0,
                 'advance_discount_percent' => 3.0
             )
         );
@@ -810,103 +1515,15 @@ class GCC_Database
     {
         global $wpdb;
 
-        // Delete existing demo products first
-        $wpdb->delete($this->table_products, array('is_demo' => 1));
+        // Check if any products already exist (not just demo)
+        $product_count = $wpdb->get_var("SELECT COUNT(*) FROM $this->table_products");
 
-        // Check if demo products already exist
-        $demo_count = $wpdb->get_var("SELECT COUNT(*) FROM $this->table_products WHERE is_demo = 1");
-
-        if ($demo_count > 0) {
-            return; // Demo products already exist
+        if ($product_count > 0) {
+            return; // Products already exist, don't overwrite
         }
 
-        // Demo products to add
-        $demo_products = array(
-            array(
-                'name' => 'Austrijski Dukat (DEMO)',
-                'description' => 'Austrijski zlatni dukat - klasi\u010dna investicija',
-                'type' => 'ducat',
-                'weight' => '3.49g',
-                'price_net' => 260.00,
-                'price_gross' => 280.00,
-                'buying_price' => 260.00,
-                'selling_price' => 280.00,
-                'status' => 'published',
-                'image_url' => '',
-                'stock_available' => 1,
-                'advance_payment_available' => 1,
-                'stock_markup_percent' => 5.0,
-                'advance_discount_percent' => 3.0,
-                'external_id' => 'demo_dukat_1',
-                'is_active' => 1,
-                'is_demo' => 1
-            ),
-            array(
-                'name' => 'Zlatna Poluga 10g (DEMO)',
-                'description' => 'Zlatna poluga 10g - mala investicija',
-                'type' => 'bar',
-                'weight' => '10g',
-                'price_net' => 650.00,
-                'price_gross' => 680.00,
-                'buying_price' => 650.00,
-                'selling_price' => 680.00,
-                'status' => 'published',
-                'image_url' => '',
-                'stock_available' => 1,
-                'advance_payment_available' => 1,
-                'stock_markup_percent' => 5.0,
-                'advance_discount_percent' => 3.0,
-                'external_id' => 'demo_bar_10g',
-                'is_active' => 1,
-                'is_demo' => 1
-            ),
-            array(
-                'name' => 'Zlatna Poluga 20g (DEMO)',
-                'description' => 'Zlatna poluga 20g - srednja investicija',
-                'type' => 'bar',
-                'weight' => '20g',
-                'price_net' => 1300.00,
-                'price_gross' => 1360.00,
-                'buying_price' => 1300.00,
-                'selling_price' => 1360.00,
-                'status' => 'published',
-                'image_url' => '',
-                'stock_available' => 1,
-                'advance_payment_available' => 1,
-                'stock_markup_percent' => 5.0,
-                'advance_discount_percent' => 3.0,
-                'external_id' => 'demo_bar_20g',
-                'is_active' => 1,
-                'is_demo' => 1
-            ),
-            array(
-                'name' => 'Zlatna Poluga 50g (DEMO)',
-                'type' => 'bar',
-                'weight' => '50g',
-                'buying_price' => 3250.00,
-                'selling_price' => 3400.00,
-                'image_url' => '',
-                'stock_available' => 1,
-                'advance_payment_available' => 1,
-                'stock_markup_percent' => 5.0,
-                'advance_discount_percent' => 3.0,
-                'external_id' => 'demo_bar_50g',
-                'is_active' => 1,
-                'is_demo' => 1
-            )
-        );
-
-        $added_count = 0;
-        foreach ($demo_products as $product) {
-            $result = $wpdb->insert($this->table_products, $product);
-            if ($result) {
-                $added_count++;
-            }
-        }
-
-        if ($added_count > 0) {
-            error_log("GCC Database: Added {$added_count} demo products on activation");
-        }
+        // Use CSV data as default products on activation
+        $this->insert_sample_products();
     }
 
     // === PERSONA METHODS ===
@@ -1713,5 +2330,183 @@ class GCC_Database
             'budget_used' => $best_total,
             'budget_remaining' => $budget - $best_total
         );
+    }
+
+    /**
+     * Import products from CSV data string
+     */
+    public function import_products_from_csv($csv_content) {
+        global $wpdb;
+        
+        // Parse CSV
+        $lines = explode("\n", trim($csv_content));
+        if (empty($lines)) {
+            return array('success' => false, 'message' => 'No data found in CSV');
+        }
+        
+        // Get headers from first line
+        $headers = str_getcsv(array_shift($lines));
+        
+        $imported_count = 0;
+        $updated_count = 0;
+        $errors = array();
+        
+        foreach ($lines as $line_number => $line) {
+            if (empty(trim($line))) continue;
+            
+            $data = str_getcsv($line);
+            if (count($data) !== count($headers)) {
+                $errors[] = "Line " . ($line_number + 2) . ": Column count mismatch";
+                continue;
+            }
+            
+            // Create associative array with headers
+            $product_data = array_combine($headers, $data);
+            
+            // Skip if essential data is missing
+            if (empty($product_data['name']) || empty($product_data['external_id'])) {
+                continue;
+            }
+            
+            // Map CSV data to database structure
+            $mapped_data = $this->map_csv_to_database($product_data);
+            
+            // Check if product already exists by article_number
+            $existing = $wpdb->get_var($wpdb->prepare(
+                "SELECT id FROM {$this->table_products} WHERE article_number = %s",
+                $mapped_data['article_number']
+            ));
+            
+            if ($existing) {
+                // Update existing product
+                $result = $wpdb->update(
+                    $this->table_products,
+                    $mapped_data,
+                    array('id' => $existing)
+                );
+                if ($result !== false) {
+                    $updated_count++;
+                }
+            } else {
+                // Insert new product
+                $result = $wpdb->insert($this->table_products, $mapped_data);
+                if ($result) {
+                    $imported_count++;
+                }
+            }
+            
+            if ($result === false) {
+                $errors[] = "Failed to process: " . $product_data['name'];
+            }
+        }
+        
+        return array(
+            'success' => true,
+            'imported' => $imported_count,
+            'updated' => $updated_count,
+            'errors' => $errors
+        );
+    }
+    
+    /**
+     * Map CSV fields to database fields
+     */
+    private function map_csv_to_database($csv_data) {
+        // Determine product type from name
+        $name = strtolower($csv_data['name']);
+        $type = 'bar'; // default
+        
+        if (strpos($name, 'dukat') !== false || strpos($name, 'britannia') !== false || 
+            strpos($name, 'philharmoniker') !== false || strpos($name, 'franc jozef') !== false) {
+            $type = 'ducat';
+        }
+        
+        // Extract weight from name
+        $weight = $this->extract_weight_from_name($csv_data['name']);
+        
+        // Clean description HTML
+        $description = strip_tags($csv_data['description']);
+        if (strlen($description) > 1000) {
+            $description = substr($description, 0, 997) . '...';
+        }
+        
+        return array(
+            'name' => sanitize_text_field($csv_data['name']),
+            'description' => sanitize_textarea_field($description),
+            'article_number' => sanitize_text_field($csv_data['external_id']),
+            'type' => $type,
+            'weight' => $weight,
+            'price_net' => floatval($csv_data['price_avans'] ?: $csv_data['price']),
+            'price_gross' => floatval($csv_data['price']),
+            'buying_price' => floatval($csv_data['price_avans'] ?: $csv_data['price']),
+            'selling_price' => floatval($csv_data['price']),
+            'status' => ($csv_data['status'] === 'published') ? 'published' : 'draft',
+            'stock_available' => intval($csv_data['avans_activate'] ?: 1),
+            'advance_payment_available' => intval($csv_data['avans_activate'] ?: 1),
+            'stock_markup_percent' => 4.0,
+            'advance_discount_percent' => 3.0,
+            'is_active' => 1,
+            'is_demo' => 0
+        );
+    }
+    
+    /**
+     * Extract weight from product name
+     */
+    private function extract_weight_from_name($name) {
+        // Look for patterns like 1g, 20g, 1oz, 1kg, etc.
+        if (preg_match('/(\d+(?:\.\d+)?)(g|oz|kg)\b/i', $name, $matches)) {
+            $number = $matches[1];
+            $unit = strtolower($matches[2]);
+            
+            // Convert to grams if needed
+            switch ($unit) {
+                case 'kg':
+                    return ($number * 1000) . 'g';
+                case 'oz':
+                    return ($number * 31.1) . 'g';
+                default:
+                    return $number . $unit;
+            }
+        }
+        
+        // Look for patterns like 25x1g, 10x2g
+        if (preg_match('/(\d+)x(\d+(?:\.\d+)?)(g|oz|kg)\b/i', $name, $matches)) {
+            $quantity = $matches[1];
+            $weight = $matches[2];
+            $unit = strtolower($matches[3]);
+            
+            // Convert to grams if needed
+            switch ($unit) {
+                case 'kg':
+                    $total_weight = ($quantity * $weight * 1000);
+                    break;
+                case 'oz':
+                    $total_weight = ($quantity * $weight * 31.1);
+                    break;
+                default:
+                    $total_weight = ($quantity * $weight);
+                    break;
+            }
+            return $total_weight . 'g';
+        }
+        
+        return '1g'; // default fallback
+    }
+    
+    /**
+     * Method to refresh default products (can be called manually)
+     * This will replace old demo products with the new CSV products
+     */
+    public function refresh_default_products() {
+        global $wpdb;
+        
+        // Remove old demo/sample products
+        $wpdb->query("DELETE FROM {$this->table_products} WHERE is_demo = 1");
+        
+        // Insert new default products
+        $this->insert_sample_products();
+        
+        return true;
     }
 }
