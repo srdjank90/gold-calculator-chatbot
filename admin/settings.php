@@ -206,6 +206,37 @@ if (!defined('ABSPATH')) {
                                 <p class="description">Calendly link for scheduling meetings</p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_avatar_image">User Avatar Image</label>
+                            </th>
+                            <td>
+                                <div class="image-upload-container">
+                                    <div class="current-image">
+                                        <div id="user-avatar-preview" class="image-preview">
+                                            <?php if (!empty($data['user_avatar_image'])): ?>
+                                                <img src="<?php echo esc_url($data['user_avatar_image']); ?>" alt="User Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">
+                                            <?php else: ?>
+                                                <div class="image-placeholder">
+                                                    <span>👤</span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="image-upload-controls">
+                                        <input type="file" id="user-avatar-upload" accept="image/*" style="display: none;">
+                                        <button type="button" class="button" onclick="document.getElementById('user-avatar-upload').click()">
+                                            Choose Image
+                                        </button>
+                                        <button type="button" class="button" onclick="removeUserAvatar()">
+                                            Remove
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="user_avatar_image" name="user_avatar_image" value="<?php echo esc_attr($data['user_avatar_image']); ?>">
+                                </div>
+                                <p class="description">Upload an avatar image that will be displayed for user messages in the chatbot. If no image is provided, a default user icon will be used.</p>
+                            </td>
+                        </tr>
                     </table>
                     <?php submit_button(); ?>
                 </form>
@@ -1580,4 +1611,54 @@ function refreshDefaultQuestions() {
         }
     });
 }
+
+// User Avatar Functions
+function updateUserAvatarPreview(imageUrl) {
+    const preview = document.getElementById('user-avatar-preview');
+    if (imageUrl) {
+        preview.innerHTML = '<img src="' + imageUrl + '" alt="User Avatar" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;">';
+    } else {
+        preview.innerHTML = '<div class="image-placeholder"><span>👤</span></div>';
+    }
+}
+
+function removeUserAvatar() {
+    document.getElementById('user_avatar_image').value = '';
+    updateUserAvatarPreview('');
+}
+
+// Handle user avatar upload
+document.addEventListener('DOMContentLoaded', function() {
+    const userAvatarUpload = document.getElementById('user-avatar-upload');
+    if (userAvatarUpload) {
+        userAvatarUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'gcc_upload_user_avatar');
+            formData.append('user_avatar', file);
+            formData.append('nonce', '<?php echo wp_create_nonce("gcc_admin_nonce"); ?>');
+            
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    if (response.success) {
+                        document.getElementById('user_avatar_image').value = response.data.image_url;
+                        updateUserAvatarPreview(response.data.image_url);
+                    } else {
+                        alert('Error uploading image: ' + response.data.message);
+                    }
+                },
+                error: function() {
+                    alert('Error uploading image');
+                }
+            });
+        });
+    }
+});
 </script>

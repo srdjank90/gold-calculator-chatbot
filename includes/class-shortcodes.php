@@ -72,6 +72,7 @@ class GCC_Shortcodes
                 persona: '<?php echo esc_js($current_persona); ?>',
                 persona_greeting: '<?php echo esc_js($persona_greeting); ?>',
                 persona_image: '<?php echo esc_js($persona_image); ?>',
+                user_avatar_image: '<?php echo esc_js(get_option("gcc_user_avatar_image", "")); ?>',
                 budget_options: <?php
                                 $budget_buckets = get_option('gcc_budget_buckets', array(
                                     array('value' => 1000, 'text' => '€1,000', 'level' => '1g'),

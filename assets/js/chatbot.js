@@ -602,6 +602,7 @@ jQuery(document).ready(function ($) {
 
   // Add user message
   function addUserMessage(message) {
+    const userAvatarHtml = getUserAvatarHtml();
     const messageHtml = `
             <div class="message-wrapper user-message">
                 <div class="message-content">
@@ -611,7 +612,7 @@ jQuery(document).ready(function ($) {
                     <div class="message-time">${getCurrentTime()}</div>
                 </div>
                 <div class="avatar">
-                    <div class="user-icon">👤</div>
+                    ${userAvatarHtml}
                 </div>
             </div>
         `;
@@ -647,6 +648,21 @@ jQuery(document).ready(function ($) {
       return `<img src="${personaImage}" alt="${persona}" class="persona-image">`;
     } else {
       return `<div class="persona-fallback">${persona.charAt(0)}</div>`;
+    }
+  }
+
+  // Get user avatar HTML
+  function getUserAvatarHtml() {
+    const userAvatarImage =
+      (typeof gold_suggestions_ajax !== "undefined" &&
+        gold_suggestions_ajax.user_avatar_image) ||
+      (typeof gcc_ajax !== "undefined" && gcc_ajax.user_avatar_image) ||
+      "";
+
+    if (userAvatarImage && userAvatarImage.trim() !== '') {
+      return `<img src="${userAvatarImage}" alt="User" class="user-avatar-image">`;
+    } else {
+      return `<div class="user-icon">👤</div>`;
     }
   }
 

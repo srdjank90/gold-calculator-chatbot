@@ -167,6 +167,14 @@
   font-size: 14px;
 }
 
+/* User avatar image */
+.user-avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
 /* Message Content */
 .message-content {
   display: flex;

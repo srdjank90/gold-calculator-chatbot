@@ -8,7 +8,7 @@ class GCC_Admin {
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
         
         // AJAX handlers
-        add_action('wp_ajax_gcc_save_settings', array($this, 'save_settings'));
+        add_action('wp_ajax_gcc_save_settings', array($this, 'save_settings_ajax'));
         add_action('wp_ajax_gcc_delete_product', array($this, 'delete_product'));
         add_action('wp_ajax_gcc_update_product', array($this, 'update_product'));
         add_action('wp_ajax_gcc_create_product', array($this, 'create_product'));
@@ -25,6 +25,7 @@ class GCC_Admin {
         add_action('wp_ajax_gcc_delete_persona', array($this, 'delete_persona'));
         add_action('wp_ajax_gcc_toggle_persona_active', array($this, 'toggle_persona_active'));
         add_action('wp_ajax_gcc_upload_persona_image', array($this, 'upload_persona_image'));
+        add_action('wp_ajax_gcc_upload_user_avatar', array($this, 'upload_user_avatar'));
         
         // Question management AJAX handlers
         add_action('wp_ajax_gcc_get_questions', array($this, 'get_questions'));
@@ -93,6 +94,7 @@ class GCC_Admin {
         register_setting('gcc_settings', 'gcc_api_update_interval');
         register_setting('gcc_settings', 'gcc_high_budget_threshold');
         register_setting('gcc_settings', 'gcc_calendly_url');
+        register_setting('gcc_settings', 'gcc_user_avatar_image');
         register_setting('gcc_settings', 'gcc_budget_buckets');
     }
     
@@ -155,26 +157,27 @@ class GCC_Admin {
         $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
         
         // Handle form submissions
-        if (isset($_POST['submit'])) {
+        if (isset($_POST['submit']) && !wp_doing_ajax()) {
+            error_log('GCC DEBUG: Form submitted for tab: ' . $current_tab);
             switch ($current_tab) {
                 case 'general':
                     $this->save_settings();
-                    break;
+                    return; // Should not reach here due to exit in save method
                 case 'chatbot':
                     $this->save_chatbot_settings();
-                    break;
+                    return; // Should not reach here due to exit in save method
                 case 'chat_persons':
                     $this->save_persona_settings();
-                    break;
+                    return;
                 case 'chat_questions':
                     $this->save_question_settings();
-                    break;
+                    return;
                 case 'email':
                     $this->save_email_settings();
-                    break;
+                    return; // Should not reach here due to exit in save method
                 case 'cache':
                     $this->save_cache_settings();
-                    break;
+                    return;
             }
         }
         
@@ -193,7 +196,8 @@ class GCC_Admin {
                 'api_key' => get_option('gcc_api_key', ''),
                 'api_update_interval' => get_option('gcc_api_update_interval', 300),
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
-                'calendly_url' => get_option('gcc_calendly_url', '')
+                'calendly_url' => get_option('gcc_calendly_url', ''),
+                'user_avatar_image' => get_option('gcc_user_avatar_image', '')
             );
         } elseif ($current_tab === 'chatbot') {
             $data = array(
@@ -202,8 +206,10 @@ class GCC_Admin {
                 'trader_info' => get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa treiderom.'),
                 'email_template' => get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.'),
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
-                'calendly_url' => get_option('gcc_calendly_url', '')
+                'calendly_url' => get_option('gcc_calendly_url', ''),
+                'user_avatar_image' => get_option('gcc_user_avatar_image', '')
             );
+            error_log('GCC DEBUG: Chatbot data loaded: ' . print_r($data, true));
         } elseif ($current_tab === 'chat_persons') {
             $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 10;
@@ -320,30 +326,61 @@ class GCC_Admin {
     }
     
     private function save_chatbot_settings() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_chatbot_settings')) {
-            wp_die('Security check failed');
+        try {
+            // Debug logging
+            error_log('GCC DEBUG: save_chatbot_settings called');
+            error_log('GCC DEBUG: POST data: ' . print_r($_POST, true));
+            
+            // Verify nonce
+            if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'gcc_chatbot_settings')) {
+                error_log('GCC DEBUG: Nonce verification failed');
+                wp_die('Security check failed');
+            }
+            
+            if (!current_user_can('manage_options')) {
+                error_log('GCC DEBUG: User lacks permissions');
+                wp_die('Insufficient permissions');
+            }
+            
+            $settings = array(
+                'gcc_exchange_rate' => floatval($_POST['exchange_rate'] ?? 117.5),
+                'gcc_exchange_rate_display' => sanitize_text_field($_POST['exchange_rate_display'] ?? ''),
+                'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info'] ?? ''),
+                'gcc_email_template' => wp_kses_post($_POST['email_template'] ?? ''),
+                'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold'] ?? 30000),
+                'gcc_calendly_url' => esc_url_raw($_POST['calendly_url'] ?? ''),
+                'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? '')
+            );
+            
+            error_log('GCC DEBUG: Settings to save: ' . print_r($settings, true));
+            
+            foreach ($settings as $key => $value) {
+                $result = update_option($key, $value);
+                error_log("GCC DEBUG: Updated $key = $value, result: " . ($result ? 'true' : 'false'));
+            }
+            
+            // Clear any output that might have been generated
+            while (ob_get_level()) {
+                ob_end_clean();
+            }
+            
+            $redirect_url = admin_url('admin.php?page=gcc-settings&tab=chatbot&settings-updated=true');
+            error_log('GCC DEBUG: Redirecting to: ' . $redirect_url);
+            
+            // More robust redirect
+            if (!headers_sent()) {
+                wp_redirect($redirect_url);
+                exit();
+            } else {
+                error_log('GCC DEBUG: Headers already sent, using JavaScript redirect');
+                echo '<script>window.location.href = "' . esc_js($redirect_url) . '";</script>';
+                exit();
+            }
+            
+        } catch (Exception $e) {
+            error_log('GCC ERROR: ' . $e->getMessage());
+            wp_die('Error saving settings: ' . $e->getMessage());
         }
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
-        
-        $settings = array(
-            'gcc_exchange_rate' => floatval($_POST['exchange_rate']),
-            'gcc_exchange_rate_display' => sanitize_text_field($_POST['exchange_rate_display']),
-            'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info']),
-            'gcc_email_template' => wp_kses_post($_POST['email_template']),
-            'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold']),
-            'gcc_calendly_url' => esc_url_raw($_POST['calendly_url'])
-        );
-        
-        foreach ($settings as $key => $value) {
-            update_option($key, $value);
-        }
-        
-        wp_redirect(admin_url('admin.php?page=gcc-settings&tab=chatbot&settings-updated=true'));
-        exit;
     }
     
     private function save_persona_settings() {
@@ -382,7 +419,13 @@ class GCC_Admin {
             update_option($key, $value);
         }
         
-        wp_redirect(admin_url('admin.php?page=gcc-settings&tab=email&settings-updated=true'));
+        // Clear any output that might have been generated
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        $redirect_url = admin_url('admin.php?page=gcc-settings&tab=email&settings-updated=true');
+        wp_redirect($redirect_url);
         exit;
     }
     
@@ -428,33 +471,36 @@ class GCC_Admin {
     
     
     public function save_settings() {
-        // Handle regular form submission
-        if (isset($_POST['submit']) && !wp_doing_ajax()) {
-            // Verify nonce for regular form submission
-            if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_settings')) {
-                wp_die('Security check failed');
-            }
-            
-            if (!current_user_can('manage_options')) {
-                wp_die('Insufficient permissions');
-            }
-            
-            $this->process_settings_save();
-            wp_redirect(admin_url('admin.php?page=gcc-settings&settings-updated=true'));
-            exit;
+        // Verify nonce for regular form submission
+        if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_settings')) {
+            wp_die('Security check failed');
         }
         
-        // Handle AJAX submission
-        if (wp_doing_ajax()) {
-            check_ajax_referer('gcc_admin_nonce', 'nonce');
-            
-            if (!current_user_can('manage_options')) {
-                wp_send_json_error(array('message' => 'Insufficient permissions'));
-            }
-            
-            $this->process_settings_save();
-            wp_send_json_success(array('message' => 'Settings saved successfully'));
+        if (!current_user_can('manage_options')) {
+            wp_die('Insufficient permissions');
         }
+        
+        $this->process_settings_save();
+        
+        // Clear any output that might have been generated
+        if (ob_get_level()) {
+            ob_end_clean();
+        }
+        
+        $redirect_url = admin_url('admin.php?page=gcc-settings&settings-updated=true');
+        wp_redirect($redirect_url);
+        exit;
+    }
+    
+    public function save_settings_ajax() {
+        check_ajax_referer('gcc_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        $this->process_settings_save();
+        wp_send_json_success(array('message' => 'Settings saved successfully'));
     }
     
     private function process_settings_save() {
@@ -487,7 +533,8 @@ class GCC_Admin {
             'gcc_api_key' => sanitize_text_field($_POST['api_key']),
             'gcc_api_update_interval' => intval($_POST['api_update_interval']),
             'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold']),
-            'gcc_calendly_url' => esc_url_raw($_POST['calendly_url'])
+            'gcc_calendly_url' => esc_url_raw($_POST['calendly_url']),
+            'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? '')
         );
         
         foreach ($settings as $key => $value) {
@@ -796,6 +843,32 @@ class GCC_Admin {
         if ($movefile && !isset($movefile['error'])) {
             wp_send_json_success(array(
                 'message' => 'Image uploaded successfully',
+                'image_url' => $movefile['url']
+            ));
+        } else {
+            wp_send_json_error(array('message' => 'Upload failed: ' . $movefile['error']));
+        }
+    }
+
+    public function upload_user_avatar() {
+        check_ajax_referer('gcc_admin_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+        
+        if (!function_exists('wp_handle_upload')) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+        }
+        
+        $uploadedfile = $_FILES['user_avatar'];
+        $upload_overrides = array('test_form' => false);
+        
+        $movefile = wp_handle_upload($uploadedfile, $upload_overrides);
+        
+        if ($movefile && !isset($movefile['error'])) {
+            wp_send_json_success(array(
+                'message' => 'User avatar uploaded successfully',
                 'image_url' => $movefile['url']
             ));
         } else {

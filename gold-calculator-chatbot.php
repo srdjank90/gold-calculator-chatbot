@@ -98,8 +98,8 @@ class GoldCalculatorChatbot
 
     public function enqueue_scripts()
     {
-        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.3.6', true);
-        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.6');
+        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.3.8', true);
+        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.8');
 
         // Get persona data
         $persona_data = $this->get_random_persona();
@@ -111,6 +111,7 @@ class GoldCalculatorChatbot
             'persona' => $persona_data['name'],
             'persona_greeting' => $persona_data['greeting_message'],
             'persona_image' => $persona_data['image_url'],
+            'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
             'budget_options' => $this->get_budget_options()
         ));
     }
