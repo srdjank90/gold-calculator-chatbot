@@ -100,6 +100,9 @@ class GoldCalculatorChatbot
     {
         wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.3.8', true);
         wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.8');
+        
+        // Add custom chatbot styles
+        $this->add_custom_chatbot_styles();
 
         // Get persona data
         $persona_data = $this->get_random_persona();
@@ -114,6 +117,107 @@ class GoldCalculatorChatbot
             'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
             'budget_options' => $this->get_budget_options()
         ));
+    }
+
+    public function add_custom_chatbot_styles() {
+        // Get all appearance settings
+        $font_family = get_option('gcc_chatbot_font_family', 'inherit');
+        $header_font_family = get_option('gcc_chat_header_font_family', 'inherit');
+        $container_bg = get_option('gcc_chat_container_bg_color', '#ffffff');
+        $header_bg = get_option('gcc_chat_header_bg_color', '#3c2415');
+        $header_text = get_option('gcc_chat_header_text_color', '#fdf7e7');
+        $ai_avatar_bg = get_option('gcc_ai_avatar_bg_color', '#3b82f6');
+        $ai_avatar_text = get_option('gcc_ai_avatar_text_color', '#ffffff');
+        $ai_bubble_bg = get_option('gcc_ai_bubble_bg_color', '#fdf7e7');
+        $ai_bubble_text = get_option('gcc_ai_bubble_text_color', '#3c2415');
+        $ai_time_text = get_option('gcc_ai_time_text_color', '#6b7280');
+        $user_avatar_bg = get_option('gcc_user_avatar_bg_color', '#10b981');
+        $user_avatar_text = get_option('gcc_user_avatar_text_color', '#ffffff');
+        $user_bubble_bg = get_option('gcc_user_bubble_bg_color', '#3b82f6');
+        $user_bubble_text = get_option('gcc_user_bubble_text_color', '#ffffff');
+        $user_time_text = get_option('gcc_user_time_text_color', '#6b7280');
+
+        // Generate custom CSS
+        $custom_css = "
+        /* Gold Calculator Chatbot Custom Styles */
+        .chat-container {
+            background-color: {$container_bg} !important;
+        }
+        
+        .chat-container * {
+            font-family: {$font_family} !important;
+        }
+        
+        .chat-header {
+            background: {$header_bg} !important;
+            color: {$header_text} !important;
+        }
+        
+        .chat-header h1,
+        .chat-header p {
+            color: {$header_text} !important;
+        }
+        
+        .chat-header h1 {
+            font-family: {$header_font_family} !important;
+        }
+        
+        .header-avatar .persona-fallback {
+            background: {$ai_avatar_bg} !important;
+            color: {$ai_avatar_text} !important;
+        }
+        
+        .ai-message .avatar {
+            background: {$ai_avatar_bg} !important;
+            color: {$ai_avatar_text} !important;
+        }
+        
+        .persona-fallback {
+            background: {$ai_avatar_bg} !important;
+            color: {$ai_avatar_text} !important;
+        }
+        
+        .ai-bubble {
+            background: {$ai_bubble_bg} !important;
+            color: {$ai_bubble_text} !important;
+        }
+        
+        .gcc-inline-option-btn {
+            background: {$ai_bubble_bg} !important;
+            color: {$ai_bubble_text} !important;
+            border: 1px solid {$ai_bubble_text} !important;
+        }
+        
+        .gcc-inline-option-btn:hover {
+            background: {$ai_bubble_text} !important;
+            color: {$ai_bubble_bg} !important;
+        }
+        
+        .ai-message .message-time {
+            color: {$ai_time_text} !important;
+        }
+        
+        .user-message .avatar {
+            background: {$user_avatar_bg} !important;
+            color: {$user_avatar_text} !important;
+        }
+        
+        .user-icon {
+            color: {$user_avatar_text} !important;
+        }
+        
+        .user-bubble {
+            background: {$user_bubble_bg} !important;
+            color: {$user_bubble_text} !important;
+        }
+        
+        .user-message .message-time {
+            color: {$user_time_text} !important;
+        }
+        ";
+
+        // Add inline styles
+        wp_add_inline_style('gcc-chatbot-css', $custom_css);
     }
 
     public function add_chatbot_modal()
@@ -332,7 +436,25 @@ class GoldCalculatorChatbot
                 'api_key' => '',
                 'api_update_interval' => 300,
                 'high_budget_threshold' => 30000,
-                'calendly_url' => ''
+                'calendly_url' => '',
+                
+                // New default appearance settings
+                'chatbot_font_family' => 'inherit',
+                'chat_header_font_family' => 'inherit',
+                'chat_header_bg_color' => '#3c2415',
+                'chat_header_text_color' => '#fdf7e7',
+                'chat_container_bg_color' => '#ffffff',
+                'ai_avatar_bg_color' => '#3b82f6',
+                'ai_avatar_text_color' => '#ffffff',
+                'ai_bubble_bg_color' => '#fdf7e7',
+                'ai_bubble_text_color' => '#3c2415',
+                'ai_time_text_color' => '#6b7280',
+                'user_avatar_bg_color' => '#10b981',
+                'user_avatar_text_color' => '#ffffff',
+                'user_bubble_bg_color' => '#3b82f6',
+                'user_bubble_text_color' => '#ffffff',
+                'user_time_text_color' => '#6b7280',
+                'user_avatar_image' => ''
             );
 
             foreach ($default_settings as $key => $value) {

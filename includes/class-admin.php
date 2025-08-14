@@ -158,7 +158,6 @@ class GCC_Admin {
         
         // Handle form submissions
         if (isset($_POST['submit']) && !wp_doing_ajax()) {
-            error_log('GCC DEBUG: Form submitted for tab: ' . $current_tab);
             switch ($current_tab) {
                 case 'general':
                     $this->save_settings();
@@ -207,9 +206,25 @@ class GCC_Admin {
                 'email_template' => get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.'),
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
                 'calendly_url' => get_option('gcc_calendly_url', ''),
-                'user_avatar_image' => get_option('gcc_user_avatar_image', '')
+                'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
+                
+                // Chatbot appearance settings
+                'chatbot_font_family' => get_option('gcc_chatbot_font_family', 'inherit'),
+                'chat_header_font_family' => get_option('gcc_chat_header_font_family', 'inherit'),
+                'chat_header_bg_color' => get_option('gcc_chat_header_bg_color', '#3c2415'),
+                'chat_header_text_color' => get_option('gcc_chat_header_text_color', '#fdf7e7'),
+                'chat_container_bg_color' => get_option('gcc_chat_container_bg_color', '#ffffff'),
+                'ai_avatar_bg_color' => get_option('gcc_ai_avatar_bg_color', '#3b82f6'),
+                'ai_avatar_text_color' => get_option('gcc_ai_avatar_text_color', '#ffffff'),
+                'ai_bubble_bg_color' => get_option('gcc_ai_bubble_bg_color', '#fdf7e7'),
+                'ai_bubble_text_color' => get_option('gcc_ai_bubble_text_color', '#3c2415'),
+                'ai_time_text_color' => get_option('gcc_ai_time_text_color', '#6b7280'),
+                'user_avatar_bg_color' => get_option('gcc_user_avatar_bg_color', '#10b981'),
+                'user_avatar_text_color' => get_option('gcc_user_avatar_text_color', '#ffffff'),
+                'user_bubble_bg_color' => get_option('gcc_user_bubble_bg_color', '#3b82f6'),
+                'user_bubble_text_color' => get_option('gcc_user_bubble_text_color', '#ffffff'),
+                'user_time_text_color' => get_option('gcc_user_time_text_color', '#6b7280')
             );
-            error_log('GCC DEBUG: Chatbot data loaded: ' . print_r($data, true));
         } elseif ($current_tab === 'chat_persons') {
             $page = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
             $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 10;
@@ -327,18 +342,12 @@ class GCC_Admin {
     
     private function save_chatbot_settings() {
         try {
-            // Debug logging
-            error_log('GCC DEBUG: save_chatbot_settings called');
-            error_log('GCC DEBUG: POST data: ' . print_r($_POST, true));
-            
             // Verify nonce
             if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'gcc_chatbot_settings')) {
-                error_log('GCC DEBUG: Nonce verification failed');
                 wp_die('Security check failed');
             }
             
             if (!current_user_can('manage_options')) {
-                error_log('GCC DEBUG: User lacks permissions');
                 wp_die('Insufficient permissions');
             }
             
@@ -349,14 +358,28 @@ class GCC_Admin {
                 'gcc_email_template' => wp_kses_post($_POST['email_template'] ?? ''),
                 'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold'] ?? 30000),
                 'gcc_calendly_url' => esc_url_raw($_POST['calendly_url'] ?? ''),
-                'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? '')
+                'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
+                
+                // Chatbot appearance settings
+                'gcc_chatbot_font_family' => sanitize_text_field($_POST['chatbot_font_family'] ?? 'inherit'),
+                'gcc_chat_header_font_family' => sanitize_text_field($_POST['chat_header_font_family'] ?? 'inherit'),
+                'gcc_chat_header_bg_color' => sanitize_hex_color($_POST['chat_header_bg_color'] ?? '#3c2415'),
+                'gcc_chat_header_text_color' => sanitize_hex_color($_POST['chat_header_text_color'] ?? '#fdf7e7'),
+                'gcc_chat_container_bg_color' => sanitize_hex_color($_POST['chat_container_bg_color'] ?? '#ffffff'),
+                'gcc_ai_avatar_bg_color' => sanitize_hex_color($_POST['ai_avatar_bg_color'] ?? '#3b82f6'),
+                'gcc_ai_avatar_text_color' => sanitize_hex_color($_POST['ai_avatar_text_color'] ?? '#ffffff'),
+                'gcc_ai_bubble_bg_color' => sanitize_hex_color($_POST['ai_bubble_bg_color'] ?? '#fdf7e7'),
+                'gcc_ai_bubble_text_color' => sanitize_hex_color($_POST['ai_bubble_text_color'] ?? '#3c2415'),
+                'gcc_ai_time_text_color' => sanitize_hex_color($_POST['ai_time_text_color'] ?? '#6b7280'),
+                'gcc_user_avatar_bg_color' => sanitize_hex_color($_POST['user_avatar_bg_color'] ?? '#10b981'),
+                'gcc_user_avatar_text_color' => sanitize_hex_color($_POST['user_avatar_text_color'] ?? '#ffffff'),
+                'gcc_user_bubble_bg_color' => sanitize_hex_color($_POST['user_bubble_bg_color'] ?? '#3b82f6'),
+                'gcc_user_bubble_text_color' => sanitize_hex_color($_POST['user_bubble_text_color'] ?? '#ffffff'),
+                'gcc_user_time_text_color' => sanitize_hex_color($_POST['user_time_text_color'] ?? '#6b7280')
             );
             
-            error_log('GCC DEBUG: Settings to save: ' . print_r($settings, true));
-            
             foreach ($settings as $key => $value) {
-                $result = update_option($key, $value);
-                error_log("GCC DEBUG: Updated $key = $value, result: " . ($result ? 'true' : 'false'));
+                update_option($key, $value);
             }
             
             // Clear any output that might have been generated
@@ -365,20 +388,17 @@ class GCC_Admin {
             }
             
             $redirect_url = admin_url('admin.php?page=gcc-settings&tab=chatbot&settings-updated=true');
-            error_log('GCC DEBUG: Redirecting to: ' . $redirect_url);
             
             // More robust redirect
             if (!headers_sent()) {
                 wp_redirect($redirect_url);
                 exit();
             } else {
-                error_log('GCC DEBUG: Headers already sent, using JavaScript redirect');
                 echo '<script>window.location.href = "' . esc_js($redirect_url) . '";</script>';
                 exit();
             }
             
         } catch (Exception $e) {
-            error_log('GCC ERROR: ' . $e->getMessage());
             wp_die('Error saving settings: ' . $e->getMessage());
         }
     }

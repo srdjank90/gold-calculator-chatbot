@@ -238,6 +238,229 @@ if (!defined('ABSPATH')) {
                             </td>
                         </tr>
                     </table>
+
+                    <h3>Chatbot Appearance Settings</h3>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row">
+                                <label for="chatbot_font_family">Font Family</label>
+                            </th>
+                            <td>
+                                <select id="chatbot_font_family" name="chatbot_font_family">
+                                    <option value="inherit" <?php selected($data['chatbot_font_family'], 'inherit'); ?>>Inherit from theme</option>
+                                    <option value="Arial, sans-serif" <?php selected($data['chatbot_font_family'], 'Arial, sans-serif'); ?>>Arial</option>
+                                    <option value="'Helvetica Neue', Helvetica, sans-serif" <?php selected($data['chatbot_font_family'], "'Helvetica Neue', Helvetica, sans-serif"); ?>>Helvetica</option>
+                                    <option value="Georgia, serif" <?php selected($data['chatbot_font_family'], 'Georgia, serif'); ?>>Georgia</option>
+                                    <option value="'Times New Roman', serif" <?php selected($data['chatbot_font_family'], "'Times New Roman', serif"); ?>>Times New Roman</option>
+                                    <option value="Verdana, sans-serif" <?php selected($data['chatbot_font_family'], 'Verdana, sans-serif'); ?>>Verdana</option>
+                                    <option value="'Comic Sans MS', cursive" <?php selected($data['chatbot_font_family'], "'Comic Sans MS', cursive"); ?>>Comic Sans MS</option>
+                                    <option value="'Courier New', monospace" <?php selected($data['chatbot_font_family'], "'Courier New', monospace"); ?>>Courier New</option>
+                                    <option value="'Roboto', sans-serif" <?php selected($data['chatbot_font_family'], "'Roboto', sans-serif"); ?>>Roboto</option>
+                                    <option value="'Open Sans', sans-serif" <?php selected($data['chatbot_font_family'], "'Open Sans', sans-serif"); ?>>Open Sans</option>
+                                </select>
+                                <p class="description">Choose the font family for the chatbot interface.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="chat_header_font_family">Header Title Font</label>
+                            </th>
+                            <td>
+                                <select id="chat_header_font_family" name="chat_header_font_family">
+                                    <option value="inherit" <?php selected($data['chat_header_font_family'] ?? 'inherit', 'inherit'); ?>>Inherit from chatbot font</option>
+                                    <option value="Arial, sans-serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', 'Arial, sans-serif'); ?>>Arial</option>
+                                    <option value="'Helvetica Neue', Helvetica, sans-serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Helvetica Neue', Helvetica, sans-serif"); ?>>Helvetica</option>
+                                    <option value="Georgia, serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', 'Georgia, serif'); ?>>Georgia</option>
+                                    <option value="'Times New Roman', serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Times New Roman', serif"); ?>>Times New Roman</option>
+                                    <option value="Verdana, sans-serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', 'Verdana, sans-serif'); ?>>Verdana</option>
+                                    <option value="'Comic Sans MS', cursive" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Comic Sans MS', cursive"); ?>>Comic Sans MS</option>
+                                    <option value="'Courier New', monospace" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Courier New', monospace"); ?>>Courier New</option>
+                                    <option value="'Roboto', sans-serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Roboto', sans-serif"); ?>>Roboto</option>
+                                    <option value="'Open Sans', sans-serif" <?php selected($data['chat_header_font_family'] ?? 'inherit', "'Open Sans', sans-serif"); ?>>Open Sans</option>
+                                </select>
+                                <p class="description">Choose a specific font for the header title (H1).</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="chat_container_bg_color">Chat Container Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="chat_container_bg_color" name="chat_container_bg_color" value="<?php echo esc_attr($data['chat_container_bg_color']); ?>" />
+                                <p class="description">Background color of the main chat container.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" colspan="2">
+                                <h4>Header Colors</h4>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="chat_header_bg_color">Header Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="chat_header_bg_color" name="chat_header_bg_color" value="<?php echo esc_attr($data['chat_header_bg_color']); ?>" />
+                                <p class="description">Background color of the chat header.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="chat_header_text_color">Header Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="chat_header_text_color" name="chat_header_text_color" value="<?php echo esc_attr($data['chat_header_text_color']); ?>" />
+                                <p class="description">Text color for the chat header.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" colspan="2">
+                                <h4>AI Message Colors</h4>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="ai_avatar_bg_color">AI Avatar Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="ai_avatar_bg_color" name="ai_avatar_bg_color" value="<?php echo esc_attr($data['ai_avatar_bg_color']); ?>" />
+                                <p class="description">Background color for AI avatar (when no image is set).</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="ai_avatar_text_color">AI Avatar Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="ai_avatar_text_color" name="ai_avatar_text_color" value="<?php echo esc_attr($data['ai_avatar_text_color']); ?>" />
+                                <p class="description">Text color for AI avatar (when no image is set).</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="ai_bubble_bg_color">AI Message Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="ai_bubble_bg_color" name="ai_bubble_bg_color" value="<?php echo esc_attr($data['ai_bubble_bg_color']); ?>" />
+                                <p class="description">Background color for AI message bubbles.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="ai_bubble_text_color">AI Message Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="ai_bubble_text_color" name="ai_bubble_text_color" value="<?php echo esc_attr($data['ai_bubble_text_color']); ?>" />
+                                <p class="description">Text color for AI messages.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="ai_time_text_color">AI Time Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="ai_time_text_color" name="ai_time_text_color" value="<?php echo esc_attr($data['ai_time_text_color']); ?>" />
+                                <p class="description">Color for AI message timestamps.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row" colspan="2">
+                                <h4>User Message Colors</h4>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_avatar_bg_color">User Avatar Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="user_avatar_bg_color" name="user_avatar_bg_color" value="<?php echo esc_attr($data['user_avatar_bg_color']); ?>" />
+                                <p class="description">Background color for user avatar (when no image is set).</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_avatar_text_color">User Avatar Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="user_avatar_text_color" name="user_avatar_text_color" value="<?php echo esc_attr($data['user_avatar_text_color']); ?>" />
+                                <p class="description">Text color for user avatar (when no image is set).</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_bubble_bg_color">User Message Background</label>
+                            </th>
+                            <td>
+                                <input type="color" id="user_bubble_bg_color" name="user_bubble_bg_color" value="<?php echo esc_attr($data['user_bubble_bg_color']); ?>" />
+                                <p class="description">Background color for user message bubbles.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_bubble_text_color">User Message Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="user_bubble_text_color" name="user_bubble_text_color" value="<?php echo esc_attr($data['user_bubble_text_color']); ?>" />
+                                <p class="description">Text color for user messages.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="user_time_text_color">User Time Text</label>
+                            </th>
+                            <td>
+                                <input type="color" id="user_time_text_color" name="user_time_text_color" value="<?php echo esc_attr($data['user_time_text_color']); ?>" />
+                                <p class="description">Color for user message timestamps.</p>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <h3>Preview</h3>
+                    <div id="chatbot-preview" style="max-width: 400px; margin: 20px 0; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;">
+                        <div class="chat-container" id="preview-container" style="height: 400px; box-shadow: none; border-radius: 0;">
+                            <div class="chat-header" id="preview-header" style="padding: 15px; border-radius: 0; display: flex; align-items: center; gap: 12px;">
+                                <div class="header-avatar" id="preview-header-avatar" style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                                    <div class="persona-fallback" id="preview-persona-fallback" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; border-radius: 50%;">Z</div>
+                                </div>
+                                <div class="header-info">
+                                    <h1 id="preview-header-text" style="margin: 0; font-size: 16px; font-weight: 600; margin-bottom: 2px;">ZLATIJA</h1>
+                                    <p id="preview-header-subtext" style="margin: 0; font-size: 12px; opacity: 0.8;">Your Gold Investment Guide</p>
+                                </div>
+                            </div>
+                            <div class="messages-container" id="preview-messages" style="flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 8px;">
+                                <!-- AI Message -->
+                                <div class="message-wrapper ai-message" style="display: flex; align-items: flex-start; gap: 12px;">
+                                    <div class="avatar" id="preview-ai-avatar" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; overflow: hidden;">
+                                        <div class="persona-fallback" id="preview-ai-avatar-text" style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; border-radius: 50%;">Z</div>
+                                    </div>
+                                    <div class="message-content" style="display: flex; flex-direction: column;">
+                                        <div class="message-bubble ai-bubble" id="preview-ai-bubble" style="padding: 12px 16px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
+                                            <p id="preview-ai-text" style="margin: 0;">🥇 Koliki je vaš budžet za investiciju u zlato?</p>
+                                        </div>
+                                        <div class="gcc-inline-options" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px;">
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">1.000€</button>
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">5.000€</button>
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">10.000€</button>
+                                        </div>
+                                        <div class="message-time" id="preview-ai-time" style="font-size: 11px; margin-top: 4px;">10:30</div>
+                                    </div>
+                                </div>
+                                <!-- User Message -->
+                                <div class="message-wrapper user-message" style="display: flex; align-items: flex-start; gap: 12px; justify-content: flex-end;">
+                                    <div class="message-content" style="display: flex; flex-direction: column; align-items: flex-end;">
+                                        <div class="message-bubble user-bubble" id="preview-user-bubble" style="padding: 12px 16px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
+                                            <p id="preview-user-text" style="margin: 0;">5.000€</p>
+                                        </div>
+                                        <div class="message-time" id="preview-user-time" style="font-size: 11px; margin-top: 4px;">10:31</div>
+                                    </div>
+                                    <div class="avatar" id="preview-user-avatar" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; overflow: hidden;">
+                                        <div class="user-icon" id="preview-user-avatar-text" style="font-size: 14px;">👤</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <?php submit_button(); ?>
                 </form>
             </div>
@@ -1660,5 +1883,118 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Live Preview Functionality
+    function updateChatbotPreview() {
+        const fontFamily = document.getElementById('chatbot_font_family')?.value || 'inherit';
+        const headerFontFamily = document.getElementById('chat_header_font_family')?.value || 'inherit';
+        const containerBg = document.getElementById('chat_container_bg_color')?.value || '#ffffff';
+        const headerBg = document.getElementById('chat_header_bg_color')?.value || '#3c2415';
+        const headerText = document.getElementById('chat_header_text_color')?.value || '#fdf7e7';
+        const aiAvatarBg = document.getElementById('ai_avatar_bg_color')?.value || '#3b82f6';
+        const aiAvatarText = document.getElementById('ai_avatar_text_color')?.value || '#ffffff';
+        const aiBubbleBg = document.getElementById('ai_bubble_bg_color')?.value || '#fdf7e7';
+        const aiBubbleText = document.getElementById('ai_bubble_text_color')?.value || '#3c2415';
+        const aiTimeText = document.getElementById('ai_time_text_color')?.value || '#6b7280';
+        const userAvatarBg = document.getElementById('user_avatar_bg_color')?.value || '#10b981';
+        const userAvatarText = document.getElementById('user_avatar_text_color')?.value || '#ffffff';
+        const userBubbleBg = document.getElementById('user_bubble_bg_color')?.value || '#3b82f6';
+        const userBubbleText = document.getElementById('user_bubble_text_color')?.value || '#ffffff';
+        const userTimeText = document.getElementById('user_time_text_color')?.value || '#6b7280';
+
+        const previewContainer = document.getElementById('preview-container');
+        if (!previewContainer) return;
+
+        // Apply font family to entire container
+        previewContainer.style.fontFamily = fontFamily;
+        previewContainer.style.backgroundColor = containerBg;
+
+        // Update header
+        const previewHeader = document.getElementById('preview-header');
+        const previewHeaderText = document.getElementById('preview-header-text');
+        const previewHeaderSubtext = document.getElementById('preview-header-subtext');
+        const previewPersonaFallback = document.getElementById('preview-persona-fallback');
+        
+        if (previewHeader) previewHeader.style.background = headerBg;
+        if (previewHeaderText) {
+            previewHeaderText.style.color = headerText;
+            previewHeaderText.style.fontFamily = headerFontFamily;
+        }
+        if (previewHeaderSubtext) previewHeaderSubtext.style.color = headerText;
+        if (previewPersonaFallback) {
+            previewPersonaFallback.style.backgroundColor = aiAvatarBg;
+            previewPersonaFallback.style.color = aiAvatarText;
+        }
+
+        // Also update header avatar container
+        const previewHeaderAvatar = document.getElementById('preview-header-avatar');
+        if (previewHeaderAvatar) {
+            previewHeaderAvatar.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
+        }
+
+        // Update AI message
+        const previewAiAvatar = document.getElementById('preview-ai-avatar');
+        const previewAiAvatarText = document.getElementById('preview-ai-avatar-text');
+        const previewAiBubble = document.getElementById('preview-ai-bubble');
+        const previewAiText = document.getElementById('preview-ai-text');
+        const previewAiTime = document.getElementById('preview-ai-time');
+
+        if (previewAiAvatar) previewAiAvatar.style.backgroundColor = aiAvatarBg;
+        if (previewAiAvatarText) previewAiAvatarText.style.color = aiAvatarText;
+        if (previewAiBubble) previewAiBubble.style.backgroundColor = aiBubbleBg;
+        if (previewAiText) previewAiText.style.color = aiBubbleText;
+        if (previewAiTime) previewAiTime.style.color = aiTimeText;
+
+        // Update inline option buttons
+        const previewOptionBtns = document.querySelectorAll('#preview-container .gcc-inline-option-btn');
+        previewOptionBtns.forEach(btn => {
+            btn.style.backgroundColor = aiBubbleBg;
+            btn.style.color = aiBubbleText;
+            btn.style.borderColor = aiBubbleText;
+        });
+
+        // Update user message
+        const previewUserAvatar = document.getElementById('preview-user-avatar');
+        const previewUserAvatarText = document.getElementById('preview-user-avatar-text');
+        const previewUserBubble = document.getElementById('preview-user-bubble');
+        const previewUserText = document.getElementById('preview-user-text');
+        const previewUserTime = document.getElementById('preview-user-time');
+
+        if (previewUserAvatar) previewUserAvatar.style.backgroundColor = userAvatarBg;
+        if (previewUserAvatarText) previewUserAvatarText.style.color = userAvatarText;
+        if (previewUserBubble) previewUserBubble.style.backgroundColor = userBubbleBg;
+        if (previewUserText) previewUserText.style.color = userBubbleText;
+        if (previewUserTime) previewUserTime.style.color = userTimeText;
+    }
+
+    // Add event listeners to all color inputs and font selection
+    const colorInputs = [
+        'chatbot_font_family',
+        'chat_header_font_family',
+        'chat_container_bg_color',
+        'chat_header_bg_color',
+        'chat_header_text_color',
+        'ai_avatar_bg_color',
+        'ai_avatar_text_color',
+        'ai_bubble_bg_color',
+        'ai_bubble_text_color',
+        'ai_time_text_color',
+        'user_avatar_bg_color',
+        'user_avatar_text_color',
+        'user_bubble_bg_color',
+        'user_bubble_text_color',
+        'user_time_text_color'
+    ];
+
+    colorInputs.forEach(function(inputId) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', updateChatbotPreview);
+            input.addEventListener('input', updateChatbotPreview);
+        }
+    });
+
+    // Initial preview update
+    setTimeout(updateChatbotPreview, 500);
 });
 </script>
