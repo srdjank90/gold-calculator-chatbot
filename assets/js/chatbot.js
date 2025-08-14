@@ -716,6 +716,9 @@ jQuery(document).ready(function ($) {
     }, 500);
   }
 
+  // Make resetChatbot globally available
+  window.resetChatbot = resetChatbot;
+
   // Show question with typing animation
   function showQuestion(questionIndex) {
     if (questionIndex >= questions.length) {

@@ -84,17 +84,13 @@ class GCC_Admin {
         register_setting('gcc_settings', 'gcc_current_persona');
         register_setting('gcc_settings', 'gcc_trader_info');
         register_setting('gcc_settings', 'gcc_email_template');
-        register_setting('gcc_settings', 'gcc_email_method');
-        register_setting('gcc_settings', 'gcc_sendgrid_api_key');
-        register_setting('gcc_settings', 'gcc_sendgrid_sender_email');
-        register_setting('gcc_settings', 'gcc_mailtrap_username');
-        register_setting('gcc_settings', 'gcc_mailtrap_password');
         register_setting('gcc_settings', 'gcc_api_url');
         register_setting('gcc_settings', 'gcc_api_key');
         register_setting('gcc_settings', 'gcc_api_update_interval');
         register_setting('gcc_settings', 'gcc_high_budget_threshold');
         register_setting('gcc_settings', 'gcc_calendly_url');
         register_setting('gcc_settings', 'gcc_user_avatar_image');
+        register_setting('gcc_settings', 'gcc_notification_email');
         register_setting('gcc_settings', 'gcc_budget_buckets');
     }
     
@@ -171,9 +167,6 @@ class GCC_Admin {
                 case 'chat_questions':
                     $this->save_question_settings();
                     return;
-                case 'email':
-                    $this->save_email_settings();
-                    return; // Should not reach here due to exit in save method
                 case 'cache':
                     $this->save_cache_settings();
                     return;
@@ -196,7 +189,8 @@ class GCC_Admin {
                 'api_update_interval' => get_option('gcc_api_update_interval', 300),
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
                 'calendly_url' => get_option('gcc_calendly_url', ''),
-                'user_avatar_image' => get_option('gcc_user_avatar_image', '')
+                'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
+                'notification_email' => get_option('gcc_notification_email', get_option('admin_email'))
             );
         } elseif ($current_tab === 'chatbot') {
             $data = array(
@@ -243,14 +237,6 @@ class GCC_Admin {
             $data = array(
                 'questions' => $database->get_all_questions(),
                 'search' => $search
-            );
-        } elseif ($current_tab === 'email') {
-            $data = array(
-                'email_method' => get_option('gcc_email_method', 'wp_mail'),
-                'sendgrid_api_key' => get_option('gcc_sendgrid_api_key', ''),
-                'sendgrid_sender_email' => get_option('gcc_sendgrid_sender_email', ''),
-                'mailtrap_username' => get_option('gcc_mailtrap_username', ''),
-                'mailtrap_password' => get_option('gcc_mailtrap_password', '')
             );
         } elseif ($current_tab === 'cache') {
             $data = array(
@@ -341,6 +327,11 @@ class GCC_Admin {
     }
     
     private function save_chatbot_settings() {
+        // Start output buffering early to catch any output
+        if (!ob_get_level()) {
+            ob_start();
+        }
+        
         try {
             // Verify nonce
             if (!isset($_POST['_wpnonce']) || !wp_verify_nonce($_POST['_wpnonce'], 'gcc_chatbot_settings')) {
@@ -417,37 +408,6 @@ class GCC_Admin {
         exit;
     }
     
-    private function save_email_settings() {
-        // Verify nonce
-        if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_email_settings')) {
-            wp_die('Security check failed');
-        }
-        
-        if (!current_user_can('manage_options')) {
-            wp_die('Insufficient permissions');
-        }
-        
-        $settings = array(
-            'gcc_email_method' => sanitize_text_field($_POST['email_method']),
-            'gcc_sendgrid_api_key' => sanitize_text_field($_POST['sendgrid_api_key']),
-            'gcc_sendgrid_sender_email' => sanitize_email($_POST['sendgrid_sender_email']),
-            'gcc_mailtrap_username' => sanitize_text_field($_POST['mailtrap_username']),
-            'gcc_mailtrap_password' => sanitize_text_field($_POST['mailtrap_password'])
-        );
-        
-        foreach ($settings as $key => $value) {
-            update_option($key, $value);
-        }
-        
-        // Clear any output that might have been generated
-        if (ob_get_level()) {
-            ob_end_clean();
-        }
-        
-        $redirect_url = admin_url('admin.php?page=gcc-settings&tab=email&settings-updated=true');
-        wp_redirect($redirect_url);
-        exit;
-    }
     
     private function save_cache_settings() {
         // Cache tab doesn't have form settings, just redirect back
@@ -491,6 +451,11 @@ class GCC_Admin {
     
     
     public function save_settings() {
+        // Start output buffering early to catch any output
+        if (!ob_get_level()) {
+            ob_start();
+        }
+        
         // Verify nonce for regular form submission
         if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_settings')) {
             wp_die('Security check failed');
@@ -500,16 +465,27 @@ class GCC_Admin {
             wp_die('Insufficient permissions');
         }
         
-        $this->process_settings_save();
+        try {
+            $this->process_settings_save();
+        } catch (Exception $e) {
+            error_log('GCC Settings Save Error: ' . $e->getMessage());
+        }
         
-        // Clear any output that might have been generated
-        if (ob_get_level()) {
+        // Clear all output buffers
+        while (ob_get_level()) {
             ob_end_clean();
         }
         
-        $redirect_url = admin_url('admin.php?page=gcc-settings&settings-updated=true');
-        wp_redirect($redirect_url);
-        exit;
+        $redirect_url = admin_url('admin.php?page=gcc-settings&tab=general&settings-updated=true');
+        
+        // More robust redirect
+        if (!headers_sent()) {
+            wp_redirect($redirect_url);
+            exit();
+        } else {
+            echo '<script>window.location.href = "' . esc_js($redirect_url) . '";</script>';
+            exit();
+        }
     }
     
     public function save_settings_ajax() {
@@ -544,17 +520,13 @@ class GCC_Admin {
             'gcc_current_persona' => sanitize_text_field($_POST['current_persona']),
             'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info']),
             'gcc_email_template' => wp_kses_post($_POST['email_template']),
-            'gcc_email_method' => sanitize_text_field($_POST['email_method'] ?? 'wp_mail'),
-            'gcc_sendgrid_api_key' => sanitize_text_field($_POST['sendgrid_api_key'] ?? ''),
-            'gcc_sendgrid_sender_email' => sanitize_email($_POST['sendgrid_sender_email'] ?? ''),
-            'gcc_mailtrap_username' => sanitize_text_field($_POST['mailtrap_username'] ?? ''),
-            'gcc_mailtrap_password' => sanitize_text_field($_POST['mailtrap_password'] ?? ''),
             'gcc_api_url' => esc_url_raw($_POST['api_url']),
             'gcc_api_key' => sanitize_text_field($_POST['api_key']),
             'gcc_api_update_interval' => intval($_POST['api_update_interval']),
             'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold']),
             'gcc_calendly_url' => esc_url_raw($_POST['calendly_url']),
-            'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? '')
+            'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
+            'gcc_notification_email' => sanitize_email($_POST['notification_email'] ?? '')
         );
         
         foreach ($settings as $key => $value) {

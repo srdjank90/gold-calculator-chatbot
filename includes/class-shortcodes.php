@@ -560,7 +560,7 @@ class GCC_Shortcodes
      */
     private function send_email_notification($data)
     {
-        $admin_email = get_option('admin_email');
+        $admin_email = get_option('gcc_notification_email', get_option('admin_email'));
         $subject = 'Novi upit za zlato - ' . $data['name'];
 
         $message = "Novi upit za zlato:\n\n";
@@ -662,7 +662,8 @@ class GCC_Shortcodes
             $phpmailer->Username = $username;
             $phpmailer->Password = $password;
             $phpmailer->SMTPSecure = 'tls';
-            $phpmailer->From = 'noreply@goldcalculator.com';
+            $site_domain = parse_url(get_site_url(), PHP_URL_HOST);
+            $phpmailer->From = 'noreply@' . $site_domain;
             $phpmailer->FromName = 'Gold Calculator';
 
             // Enable SMTP debugging for development

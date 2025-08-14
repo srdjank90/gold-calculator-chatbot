@@ -14,14 +14,15 @@ class GCC_Email_Handler {
     }
     
     private function send_owner_notification($quote_data, $ticket_number) {
-        $to = 'trading@yourcompany.com'; // Replace with actual email
+        $to = get_option('gcc_notification_email', get_option('admin_email'));
         $subject = 'Nova zahtev za ponudu - ' . $ticket_number;
         
         $message = $this->generate_owner_email_content($quote_data, $ticket_number);
         
+        $site_domain = parse_url(get_site_url(), PHP_URL_HOST);
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
-            'From: Gold Calculator <noreply@yourcompany.com>'
+            'From: Gold Calculator <noreply@' . $site_domain . '>'
         );
         
         return wp_mail($to, $subject, $message, $headers);
@@ -33,9 +34,10 @@ class GCC_Email_Handler {
         
         $message = $this->generate_customer_email_content($quote_data, $ticket_number);
         
+        $site_domain = parse_url(get_site_url(), PHP_URL_HOST);
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
-            'From: Gold Calculator <noreply@yourcompany.com>'
+            'From: Gold Calculator <noreply@' . $site_domain . '>'
         );
         
         return wp_mail($to, $subject, $message, $headers);
@@ -120,6 +122,7 @@ class GCC_Email_Handler {
         $template = get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.');
         $exchange_rate = get_option('gcc_exchange_rate', 117.5);
         $total_rsd = $quote_data['total_value'] * $exchange_rate;
+        $notification_email = get_option('gcc_notification_email', get_option('admin_email'));
         
         $products_html = '';
         if (!empty($quote_data['selected_products'])) {
@@ -175,7 +178,7 @@ class GCC_Email_Handler {
                     <p style="color: #7f8c8d; font-size: 14px;">
                         Za hitna pitanja možete nas kontaktirati na:
                         <br>
-                        <strong>Email:</strong> trading@yourcompany.com
+                        <strong>Email:</strong> {$notification_email}
                         <br>
                         <strong>Telefon:</strong> +381 11 123 4567
                     </p>

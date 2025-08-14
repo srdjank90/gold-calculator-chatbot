@@ -31,10 +31,6 @@ if (!defined('ABSPATH')) {
            class="nav-tab <?php echo $current_tab === 'chat_questions' ? 'nav-tab-active' : ''; ?>">
             Chat Questions
         </a>
-        <a href="<?php echo admin_url('admin.php?page=gcc-settings&tab=email'); ?>" 
-           class="nav-tab <?php echo $current_tab === 'email' ? 'nav-tab-active' : ''; ?>">
-            Email
-        </a>
         <a href="<?php echo admin_url('admin.php?page=gcc-settings&tab=cache'); ?>" 
            class="nav-tab <?php echo $current_tab === 'cache' ? 'nav-tab-active' : ''; ?>">
             Cache
@@ -114,6 +110,19 @@ if (!defined('ABSPATH')) {
                                     <option value="3600" <?php selected($data['api_update_interval'], 3600); ?>>60 minutes</option>
                                 </select>
                                 <p class="description">How often to sync with the API endpoint</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label for="notification_email">Notification Email</label>
+                            </th>
+                            <td>
+                                <input type="email" 
+                                       id="notification_email" 
+                                       name="notification_email" 
+                                       value="<?php echo esc_attr($data['notification_email']); ?>" 
+                                       class="large-text" />
+                                <p class="description">Email address to receive offer notifications from chatbot</p>
                             </td>
                         </tr>
                     </table>
@@ -435,12 +444,12 @@ if (!defined('ABSPATH')) {
                                     </div>
                                     <div class="message-content" style="display: flex; flex-direction: column;">
                                         <div class="message-bubble ai-bubble" id="preview-ai-bubble" style="padding: 12px 16px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb;">
-                                            <p id="preview-ai-text" style="margin: 0;">🥇 Koliki je vaš budžet za investiciju u zlato?</p>
+                                            <p id="preview-ai-text" style="margin: 0;">💰 Kakav procenat zlata želite?</p>
                                         </div>
                                         <div class="gcc-inline-options" style="margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px;">
-                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">1.000€</button>
-                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">5.000€</button>
-                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">10.000€</button>
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">Pola Pola</button>
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">Više Dukata</button>
+                                            <button class="gcc-inline-option-btn" style="padding: 6px 12px; border-radius: 12px; font-size: 14px; border: 1px solid; cursor: pointer; transition: all 0.2s ease;">Više Poluga</button>
                                         </div>
                                         <div class="message-time" id="preview-ai-time" style="font-size: 11px; margin-top: 4px;">10:30</div>
                                     </div>
@@ -449,7 +458,7 @@ if (!defined('ABSPATH')) {
                                 <div class="message-wrapper user-message" style="display: flex; align-items: flex-start; gap: 12px; justify-content: flex-end;">
                                     <div class="message-content" style="display: flex; flex-direction: column; align-items: flex-end;">
                                         <div class="message-bubble user-bubble" id="preview-user-bubble" style="padding: 12px 16px; border-radius: 18px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);">
-                                            <p id="preview-user-text" style="margin: 0;">5.000€</p>
+                                            <p id="preview-user-text" style="margin: 0;">Pola Pola</p>
                                         </div>
                                         <div class="message-time" id="preview-user-time" style="font-size: 11px; margin-top: 4px;">10:31</div>
                                     </div>
@@ -656,82 +665,6 @@ if (!defined('ABSPATH')) {
                 </div>
             </div>
         
-        <?php elseif ($current_tab === 'email'): ?>
-            <div class="email-settings-tab">
-                <h3>Email Settings</h3>
-                <form method="post" action="">
-                    <?php wp_nonce_field('gcc_email_settings'); ?>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row">
-                                <label for="email_method">Email Method</label>
-                            </th>
-                            <td>
-                                <select id="email_method" name="email_method">
-                                    <option value="wp_mail" <?php selected($data['email_method'], 'wp_mail'); ?>>WordPress wp_mail</option>
-                                    <option value="sendgrid" <?php selected($data['email_method'], 'sendgrid'); ?>>SendGrid</option>
-                                    <option value="mailtrap" <?php selected($data['email_method'], 'mailtrap'); ?>>Mailtrap</option>
-                                </select>
-                                <p class="description">Choose your email delivery method</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="sendgrid_api_key">SendGrid API Key</label>
-                            </th>
-                            <td>
-                                <input type="text" 
-                                       id="sendgrid_api_key" 
-                                       name="sendgrid_api_key" 
-                                       value="<?php echo esc_attr($data['sendgrid_api_key']); ?>" 
-                                       class="large-text" />
-                                <p class="description">Required for SendGrid email delivery</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="sendgrid_sender_email">SendGrid Sender Email</label>
-                            </th>
-                            <td>
-                                <input type="email" 
-                                       id="sendgrid_sender_email" 
-                                       name="sendgrid_sender_email" 
-                                       value="<?php echo esc_attr($data['sendgrid_sender_email']); ?>" 
-                                       class="regular-text" />
-                                <p class="description">Verified sender email for SendGrid</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="mailtrap_username">Mailtrap Username</label>
-                            </th>
-                            <td>
-                                <input type="text" 
-                                       id="mailtrap_username" 
-                                       name="mailtrap_username" 
-                                       value="<?php echo esc_attr($data['mailtrap_username']); ?>" 
-                                       class="regular-text" />
-                                <p class="description">Mailtrap SMTP username</p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row">
-                                <label for="mailtrap_password">Mailtrap Password</label>
-                            </th>
-                            <td>
-                                <input type="password" 
-                                       id="mailtrap_password" 
-                                       name="mailtrap_password" 
-                                       value="<?php echo esc_attr($data['mailtrap_password']); ?>" 
-                                       class="regular-text" />
-                                <p class="description">Mailtrap SMTP password</p>
-                            </td>
-                        </tr>
-                    </table>
-                    <?php submit_button(); ?>
-                </form>
-            </div>
-        
         <?php elseif ($current_tab === 'cache'): ?>
             <div class="cache-settings-tab">
                 <h3>Cache Management</h3>
@@ -802,7 +735,7 @@ if (!defined('ABSPATH')) {
             <div class="unknown-tab">
                 <h3>Unknown Tab</h3>
                 <p>Tab "<?php echo esc_html($current_tab); ?>" not found.</p>
-                <p>Available tabs: general, chatbot, chat_persons, chat_questions, email, cache</p>
+                <p>Available tabs: general, chatbot, chat_persons, chat_questions, cache</p>
             </div>
         <?php endif; ?>
     </div>

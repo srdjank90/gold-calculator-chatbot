@@ -304,7 +304,7 @@ class GCC_Database
             'platform' => $this->get_user_platform(),
             'created_date' => current_time('mysql'),
             'customer_email' => sanitize_email($data['email']),
-            'system_email' => get_option('admin_email', 'admin@example.com')
+            'system_email' => get_option('gcc_notification_email', get_option('admin_email'))
         );
 
         $result = $wpdb->insert($this->table_submits, $submit_data);
@@ -1134,17 +1134,11 @@ class GCC_Database
                 'condition_logic' => 'budget < 30000'
             ),
             array(
-                'question' => 'Koji procenat želite da bude u polugama/pločicama?',
+                'question' => 'Kakav procenat zlata želite?',
                 'options' => json_encode(array(
-                    array('value' => '10', 'label' => '10% poluge, 90% dukati'),
-                    array('value' => '20', 'label' => '20% poluge, 80% dukati'),
-                    array('value' => '30', 'label' => '30% poluge, 70% dukati'),
-                    array('value' => '40', 'label' => '40% poluge, 60% dukati'),
-                    array('value' => '50', 'label' => '50% poluge, 50% dukati'),
-                    array('value' => '60', 'label' => '60% poluge, 40% dukati'),
-                    array('value' => '70', 'label' => '70% poluge, 30% dukati'),
-                    array('value' => '80', 'label' => '80% poluge, 20% dukati'),
-                    array('value' => '90', 'label' => '90% poluge, 10% dukati')
+                    array('value' => '50', 'label' => 'Pola Pola (50% poluge, 50% dukati)'),
+                    array('value' => '33', 'label' => 'Više Dukata (33% poluge, 67% dukati)'),
+                    array('value' => '67', 'label' => 'Više Poluga (67% poluge, 33% dukati)')
                 )),
                 'attributes' => json_encode(array('combo_percentage' => true)),
                 'question_order' => 3,

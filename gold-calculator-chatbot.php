@@ -454,7 +454,8 @@ class GoldCalculatorChatbot
                 'user_bubble_bg_color' => '#3b82f6',
                 'user_bubble_text_color' => '#ffffff',
                 'user_time_text_color' => '#6b7280',
-                'user_avatar_image' => ''
+                'user_avatar_image' => '',
+                'notification_email' => get_option('admin_email')
             );
 
             foreach ($default_settings as $key => $value) {
