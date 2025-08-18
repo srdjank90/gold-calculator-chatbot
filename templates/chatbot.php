@@ -228,7 +228,7 @@
         <div class="gcc-step-content">
             <div class="gcc-high-budget-message">
                 <div class="gcc-vip-icon">👑</div>
-                <h3>Za veće investicije preporučujemo direktan razgovor sa treiderom.</h3>
+                <h3>Za veće investicije preporučujemo direktan razgovor sa trejderom.</h3>
                 <p>Naš tim eksperata će vam pružiti personalizovanu konsultaciju i najbolje uslove.</p>
             </div>
             <div class="gcc-vip-options">

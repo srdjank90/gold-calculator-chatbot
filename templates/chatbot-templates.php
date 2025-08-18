@@ -1,6 +1,6 @@
 <!-- Hidden elements for dynamic content -->
 <div id="gcc-templates" style="display: none;">
-    
+
     <!-- Budget Selection Template -->
     <div id="gcc-budget-template">
         <div class="gcc-step-content">
@@ -18,7 +18,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Product Type Selection Template -->
     <div id="gcc-product-type-template">
         <div class="gcc-step-content">
@@ -48,7 +48,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Weight Preference Template -->
     <div id="gcc-weight-preference-template">
         <div class="gcc-step-content">
@@ -71,7 +71,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Delivery Method Template -->
     <div id="gcc-delivery-method-template">
         <div class="gcc-step-content">
@@ -94,7 +94,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Product Selection Template -->
     <div id="gcc-product-selection-template">
         <div class="gcc-step-content">
@@ -121,7 +121,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Quote Form Template -->
     <div id="gcc-quote-form-template">
         <div class="gcc-step-content">
@@ -159,7 +159,7 @@
             </form>
         </div>
     </div>
-    
+
     <!-- Success Message Template -->
     <div id="gcc-success-template">
         <div class="gcc-step-content gcc-success-content">
@@ -174,13 +174,13 @@
             </div>
         </div>
     </div>
-    
+
     <!-- High Budget Template -->
     <div id="gcc-high-budget-template">
         <div class="gcc-step-content">
             <div class="gcc-high-budget-message">
                 <div class="gcc-vip-icon">👑</div>
-                <h3><?php echo get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa treiderom.'); ?></h3>
+                <h3><?php echo get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa trejderom.'); ?></h3>
                 <p>Naš tim eksperata će vam pružiti personalizovanu konsultaciju i najbolje uslove.</p>
             </div>
             <div class="gcc-vip-options">
@@ -193,5 +193,5 @@
             </div>
         </div>
     </div>
-    
+
 </div>

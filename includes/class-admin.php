@@ -42,11 +42,11 @@ class GCC_Admin
         add_action('admin_post_gcc_save_settings', array($this, 'handle_settings_save'));
         add_action('admin_post_gcc_save_chatbot_settings', array($this, 'handle_settings_save'));
         add_action('wp_ajax_gcc_refresh_default_questions', array($this, 'refresh_default_questions'));
-        
+
         // Calendly URL handler for frontend
         add_action('wp_ajax_gcc_get_calendly_url', array($this, 'get_calendly_url'));
         add_action('wp_ajax_nopriv_gcc_get_calendly_url', array($this, 'get_calendly_url'));
-        
+
         // Price sync handler for admin
         add_action('wp_ajax_gcc_manual_price_sync', array($this, 'manual_price_sync'));
         add_action('wp_ajax_gcc_manual_exchange_sync', array($this, 'manual_exchange_sync'));
@@ -183,7 +183,7 @@ class GCC_Admin
                 'exchange_rate_display' => get_option('gcc_exchange_rate_display', 'EUR/RSD: 117.5'),
                 'bot_personas' => get_option('gcc_bot_personas', array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA')),
                 'current_persona' => get_option('gcc_current_persona', 'ZLATIJA'),
-                'trader_info' => get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa treiderom.'),
+                'trader_info' => get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa trejderom.'),
                 'email_template' => get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.'),
                 'api_url' => get_option('gcc_api_url', ''),
                 'api_key' => get_option('gcc_api_key', ''),
@@ -197,7 +197,7 @@ class GCC_Admin
             $data = array(
                 'exchange_rate' => get_option('gcc_exchange_rate', 117.5),
                 'exchange_rate_display' => get_option('gcc_exchange_rate_display', 'EUR/RSD: 117.5'),
-                'trader_info' => get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa treiderom.'),
+                'trader_info' => get_option('gcc_trader_info', 'Za veće investicije preporučujemo direktan razgovor sa trejderom.'),
                 'email_template' => get_option('gcc_email_template', 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.'),
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
                 'calendly_url' => get_option('gcc_calendly_url', ''),
@@ -559,8 +559,11 @@ class GCC_Admin
             error_log('GCC: About to save ' . count($settings) . ' settings');
 
             foreach ($settings as $key => $value) {
+                $current_value = get_option($key);
                 $result = update_option($key, $value);
-                if (!$result && get_option($key) !== $value) {
+                
+                // Only log failure if the value didn't actually get set correctly
+                if (get_option($key) !== $value) {
                     error_log("GCC: Failed to update option $key");
                 }
             }
@@ -589,7 +592,7 @@ class GCC_Admin
     {
         // No nonce check needed for public endpoint
         $calendly_url = get_option('gcc_calendly_url', '');
-        
+
         wp_send_json_success(array(
             'calendly_url' => $calendly_url
         ));
@@ -606,10 +609,10 @@ class GCC_Admin
         if (!class_exists('GCC_Database')) {
             require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
         }
-        
+
         $database = new GCC_Database();
         $result = $database->sync_product_prices();
-        
+
         if ($result['success']) {
             wp_send_json_success($result);
         } else {
@@ -628,10 +631,10 @@ class GCC_Admin
         if (!class_exists('GCC_Database')) {
             require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
         }
-        
+
         $database = new GCC_Database();
         $result = $database->sync_exchange_rate();
-        
+
         if ($result['success']) {
             wp_send_json_success($result);
         } else {

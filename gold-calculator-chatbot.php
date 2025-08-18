@@ -444,7 +444,7 @@ class GoldCalculatorChatbot
                 'exchange_rate_display' => 'EUR/RSD: 117.5',
                 'bot_personas' => array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA'),
                 'current_persona' => 'ZLATIJA',
-                'trader_info' => 'Za veće investicije preporučujemo direktan razgovor sa treiderom.',
+                'trader_info' => 'Za veće investicije preporučujemo direktan razgovor sa trejderom.',
                 'email_template' => 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.',
                 'api_url' => 'https://radoviutoku.com/api/prices',
                 'api_key' => '',
