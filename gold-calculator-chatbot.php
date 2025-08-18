@@ -94,12 +94,13 @@ class GoldCalculatorChatbot
     {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'add_chatbot_modal'));
+        add_action('wp_ajax_gcc_recreate_products', array($this, 'recreate_products_ajax'));
     }
 
     public function enqueue_scripts()
     {
         wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.3.8', true);
-        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.8');
+        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.9');
         
         // Add custom chatbot styles
         $this->add_custom_chatbot_styles();
@@ -420,8 +421,11 @@ class GoldCalculatorChatbot
             // Create tables if class exists
             if (class_exists('GCC_Database')) {
                 $database = new GCC_Database();
+                $database->recreate_products_table();
+                $database->import_products_from_json(GCC_PLUGIN_PATH . 'products_active.json');
+                
+                // Create other tables (submits, personas, questions)
                 $database->create_tables();
-                $database->add_demo_products_on_activation();
             }
 
             // Create default settings
@@ -467,6 +471,23 @@ class GoldCalculatorChatbot
         } catch (Exception $e) {
             error_log("Gold Calculator Chatbot activation error: " . $e->getMessage());
             // Don't fail activation, just log the error
+        }
+    }
+
+    public function recreate_products_ajax()
+    {
+        // Check user capabilities
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+
+        $database = new GCC_Database();
+        $result = $database->recreate_and_import_products();
+
+        if ($result) {
+            wp_send_json_success('Products table recreated and imported successfully!');
+        } else {
+            wp_send_json_error('Failed to recreate table or import products.');
         }
     }
 

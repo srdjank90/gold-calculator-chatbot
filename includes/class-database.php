@@ -36,40 +36,31 @@ class GCC_Database
 
         $charset_collate = $wpdb->get_charset_collate();
 
-        // Products table
+        // Products table - structure matching JSON data
         $sql_products = "CREATE TABLE $this->table_products (
             id int(11) NOT NULL AUTO_INCREMENT,
             name varchar(255) NOT NULL,
-            description text DEFAULT '',
-            article_number varchar(100) DEFAULT '',
-            type enum('bar', 'ducat') NOT NULL,
-            weight varchar(50) NOT NULL,
-            price_net decimal(10,2) NOT NULL,
-            price_gross decimal(10,2) NOT NULL,
-            number_products int(11) DEFAULT 0,
+            slug varchar(255) NOT NULL,
+            description text,
+            price decimal(10,2) NOT NULL,
+            price_avans decimal(10,2) NOT NULL,
+            avans_activate tinyint(1) DEFAULT 0,
+            currency varchar(10) DEFAULT NULL,
             status enum('published', 'draft') DEFAULT 'draft',
-            featured_image varchar(500) DEFAULT '',
-            price_updated_at datetime DEFAULT CURRENT_TIMESTAMP,
-            buying_price decimal(10,2) NOT NULL,
-            selling_price decimal(10,2) NOT NULL,
-            image_url varchar(500) DEFAULT '',
-            stock_available tinyint(1) DEFAULT 1,
-            advance_payment_available tinyint(1) DEFAULT 1,
-            stock_markup_percent decimal(5,2) DEFAULT 0,
-            advance_discount_percent decimal(5,2) DEFAULT 0,
-            external_id varchar(255) DEFAULT '',
-            is_active tinyint(1) DEFAULT 1,
-            is_demo tinyint(1) DEFAULT 0,
+            user_id int(11) DEFAULT 1,
+            highlighted tinyint(1) DEFAULT 0,
+            expire_at datetime DEFAULT NULL,
+            published_at datetime DEFAULT NULL,
+            external_id int(11) DEFAULT NULL,
+            deleted_at datetime DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
-            KEY type (type),
-            KEY weight (weight),
+            UNIQUE KEY external_id (external_id),
+            KEY slug (slug),
             KEY status (status),
-            KEY is_active (is_active),
-            KEY is_demo (is_demo),
-            KEY external_id (external_id),
-            KEY article_number (article_number)
+            KEY user_id (user_id),
+            KEY highlighted (highlighted)
         ) $charset_collate;";
 
         // Submits table (formerly quotes)
@@ -144,6 +135,414 @@ class GCC_Database
         global $wpdb;
 
         $sample_products = array(
+            array(
+                'name' => 'Argor Heraeus 1g zlatna pločica',
+                'slug' => 'argor-heraeus-1g-zlatna-plocica',
+                'description' => '<p>C. Hafner 1g je čisto zlato u najmanjem nominalnom obliku. Zbog svoje veličine su <strong>jednostavne za čuvanje, imaju visoku likvidnost sa stanovi&scaron;ta naknadnog raspolaganja i savr&scaron;en su poklon</strong> za prijatelje i porodicu.&nbsp; Svaka pločica C. Hafner 1g, sa na&scaron;eg sajta <a href="https://zlatnistandard.rs/">Zlatni Standard</a>, prilikom kupovine dolazi u sigurnosnom plastičnom blister pakovanju, u kojem se nalaze svi relevantni sertifikati o proizvodu. U blister pakovanju C. Hafner 1 gram se takođe nalazi sertifikat koji sadrži potvrdu 999,9 finoće, dok se na samoj pločici i blisteru nalazi jedinstveni serijski broj proizvoda. Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) reguli&scaron;e i garantuje kvalitet proizvodnje i trgovine dragocenim metalima, uključujući i zlato, na svetskom nivou. Zbog svojih strogih uslova i ugleda koji ima, LBMA svojom sertifikacijom za Ugovorne strane su&scaron;tinski isključuje mogućnost manipulacije robom (na primer mogućnost da je gramaža manja ili da zlato nije ugovorene finoće i slično). Sa 1 gram čistog zlata, ova poluga je dobrodo&scaron;ao dodatak investicionim portfeljima koji teže likvidnosti i finansijskoj stabilnosti.&nbsp; <strong>LBMA Good Delivery garancija</strong> simbol je sigurnosti za kupce čiji je odabir C. Hafner 1g! Poluga C. Hafner 1 gram zahteva posebnu preciznost prilikom topljenja, oblikovanja i utiskivanja posebnih obeležja, &scaron;to upravo garantuju pouzdane rafinerije čiji se proizvodi nalaze u na&scaron;oj ponudi.&nbsp; <strong>Svojstva proizvoda</strong>: <strong>Oznaka 999,9 za finoću</strong> garantuje gotovo potpunu čistoću pločica C. Hafner od 1g. Oznaka za finoću, težina i logo su utisnuti na prednjoj strani, zajedno sa serijskim brojem. Svaka C. Hafner 1g pločica na sebi ima sve važne informacije, kao &scaron;to su <strong>oznaka težine, čistoća zlata i jedinstveni serijski broj</strong>.&nbsp;</p>',
+                'price' => 12988.00,
+                'price_avans' => 12666.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 2,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C. Hafner 1g zlatna pločica',
+                'slug' => 'c-hafner-1g-zlatna-plocica',
+                'description' => '<p>C. Hafner 1g je čisto zlato u najmanjem nominalnom obliku. Zbog svoje veličine su <strong>jednostavne za čuvanje, imaju visoku likvidnost sa stanovi&scaron;ta naknadnog raspolaganja i savr&scaron;en su poklon</strong> za prijatelje i porodicu.&nbsp; Svaka pločica C. Hafner 1g, sa na&scaron;eg sajta <a href="https://zlatnistandard.rs/">Zlatni Standard</a>, prilikom kupovine dolazi u sigurnosnom plastičnom blister pakovanju, u kojem se nalaze svi relevantni sertifikati o proizvodu. U blister pakovanju C. Hafner 1 gram se takođe nalazi sertifikat koji sadrži potvrdu 999,9 finoće, dok se na samoj pločici i blisteru nalazi jedinstveni serijski broj proizvoda. Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) reguli&scaron;e i garantuje kvalitet proizvodnje i trgovine dragocenim metalima, uključujući i zlato, na svetskom nivou. Zbog svojih strogih uslova i ugleda koji ima, LBMA svojom sertifikacijom za Ugovorne strane su&scaron;tinski isključuje mogućnost manipulacije robom (na primer mogućnost da je gramaža manja ili da zlato nije ugovorene finoće i slično). Sa 1 gram čistog zlata, ova poluga je dobrodo&scaron;ao dodatak investicionim portfeljima koji teže likvidnosti i finansijskoj stabilnosti.&nbsp; <strong>LBMA Good Delivery garancija</strong> simbol je sigurnosti za kupce čiji je odabir C. Hafner 1g! Poluga C. Hafner 1 gram zahteva posebnu preciznost prilikom topljenja, oblikovanja i utiskivanja posebnih obeležja, &scaron;to upravo garantuju pouzdane rafinerije čiji se proizvodi nalaze u na&scaron;oj ponudi.&nbsp; <strong>Svojstva proizvoda</strong>: <strong>Oznaka 999,9 za finoću</strong> garantuje gotovo potpunu čistoću pločica C. Hafner od 1g. Oznaka za finoću, težina i logo su utisnuti na prednjoj strani, zajedno sa serijskim brojem. Svaka C. Hafner 1g pločica na sebi ima sve važne informacije, kao &scaron;to su <strong>oznaka težine, čistoća zlata i jedinstveni serijski broj</strong>.&nbsp;</p>',
+                'price' => 12988.00,
+                'price_avans' => 12666.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 1,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x1g zlatna pločica',
+                'slug' => 'the-royal-mint-britannia-25x1g-zlatna-plocica',
+                'description' => '<p>Zlatna poluga od 1 gram Britannia, simbol je britanske hrabrosti i istrajnosti, kroz jedinstven dizajn eminentnog britanskog dizajnera Džodi Klark. Sa 1 gram čistog zlata, ova poluga je <strong>dobrodo&scaron;ao dodatak investicionim portfeljima</strong> koji teže likvidnosti i finansijskoj stabilnosti; zbog svog cenovnog profila, pločica od 1 gram Britannia predstavlja dobar poklon za drage osobe za njihov poseban dan, jubilej ili drugu prigodu.&nbsp; Poluga je upakovana u <strong>sigurnosno pakovanje koje je brendirano Britannia</strong>, za bezbedan transport i skladi&scaron;tenje. Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta.&nbsp; Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. <strong>Svi relevantni sertifikati </strong>se nalaze u sigurnosnom blister pakovanju u kojem se nalazi zlatna pločica. Pločica ima jedinstveni serijski broj.</p>',
+                'price' => 311283.00,
+                'price_avans' => 311283.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 240,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 2g zlatna pločica',
+                'slug' => 'argor-heraeus-2g-zlatna-plocica',
+                'description' => '<p>2g Argor Heraeus je zagarantovano autentična pločica i dolazi u originalnom blister pakovanju, u kojem se nalaze svi relevantni sertifikati o proizvodu.&nbsp; Rafinerija koja proizvodi Argor Heraeus radi pod akreditacijom organizacije <strong>LBMA (London Bullion Market Association)</strong>. Udruženje učesnika trži&scaron;ta dragocenih metala jeste garant standardizovane proizvodnje u celom svetu, dok se uz njihovu Good delivery garanciju isključuje mogućnost manipulacije robom. Pouzdanost i vrednost proizvoda zagarantovani su <strong>vrhunskom čistoćom zlata od 999,9</strong>, dok su preciznom obradom ucrtane sve potrebne informacije na prednjoj strani poluge.&nbsp; 2g Argor Heraeus poluga može biti potpuno originalan dar najdražima za važan datum.</p>',
+                'price' => 24796.00,
+                'price_avans' => 24474.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 4,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C. Hafner 2g zlatna pločica',
+                'slug' => 'c-hafner-2g-zlatna-plocica',
+                'description' => '<p>Pločica 2g C. Hafner brenda je zagarantovano autentična, jer dolazi u originalnom blister pakovanju, koje je pohranjeno svim relevantnim sertifikatima o proizvodu.&nbsp; Rafinerija koja proizvodi C. Hafner pločice od 2 grama radi pod akreditacijom organizacije <strong>LBMA (&ldquo;London Bullion Market Association&rdquo;)</strong>.&nbsp; Pouzdanost i vrednost proizvoda zagarantovani su <strong>vrhunskom čistoćom zlata od 999.9</strong>, dok su preciznom obradom ucrtane sve potrebne informacije na prednjoj strani poluge.</p>',
+                'price' => 24796.00,
+                'price_avans' => 24474.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 3,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 5g zlatna pločica',
+                'slug' => 'argor-heraeus-5g-zlatna-plocica',
+                'description' => '<p>Investiciono zlato Argor Heraeus rafinerije <strong>precizno je izliveno u standardizovanim i kontrolisanim uslovima</strong>. Kontrolu procesa proizvodnje nadgleda Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). 5g Argor Heraeus pločica iz ponude <a href="https://zlatnistandard.rs/">Zlatnog standarda &ndash; prodavnice za kupovinu zlata</a>, <strong>spakovana je, prodaje se i dostavlja u originalnom plastičnom blister pakovanju</strong> i to zajedno sa sertifikatom o autentičnosti, atestom finoće 999,9 i Good delivery sertifikatom.&nbsp;&nbsp;&nbsp; Sve važne informacije kao &scaron;to su <strong>oznake za težinu, čistoću zlata i jedinstveni serijski broj</strong> poluge 5g Argor Heraeus brenda nalaze se na frontalnoj strani.</p>',
+                'price' => 58393.00,
+                'price_avans' => 57963.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 6,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner 5g zlatna pločica',
+                'slug' => 'chafner-5g-zlatna-plocica',
+                'description' => '<p>Zlatne pločice C. Hafner rafinerije <strong>precizno su izlivene u standardizovanim i kontrolisanim uslovima</strong>. Kontrolu procesa proizvodnje nadgleda Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Poluga C. Hafner 5g finoće 999,9 iz ponude <a href="https://zlatnistandard.rs/">Zlatnog standarda &ndash; prodavnice za kupovinu zlata</a>, <strong>spakovana je, prodaje se i dostavlja u originalnom plastičnom blister pakovanju</strong> i to zajedno sa sertifikatom o autentičnosti.&nbsp;&nbsp; Sve važne informacije kao &scaron;to su <strong>oznake za težinu, čistoću zlata i jedinstveni serijski broj</strong> pločice 5 grama C. Hafner brenda nalaze se na frontalnoj strani.</p>',
+                'price' => 58393.00,
+                'price_avans' => 57963.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 5,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x5g zlatna pločica',
+                'slug' => 'the-royal-mint-britannia-25x5g-zlatna-plocica',
+                'description' => '<p>The Royal Mint od 5 grama Britannia, <strong>simbol je britanske hrabrosti i istrajnosti</strong>, kroz jedinstven dizajn Džodi Klark. Sa 5 grama čistog zlata, ova poluga je likvidan način da se osnaži u&scaron;teđevina ili investicioni portfelj lica koja teže finansijskoj stabilnosti i žele da sačuvaju kupovnu moć svog novca.&nbsp; Jedan od najpopularnijih formata u Srbiji, takođe <strong>pogodan za važan poklon</strong>, na primer za rođenje, kr&scaron;tenje, ili neki drugi specijalan jubilej. Poluga je upakovana u sigurnosno pakovanje koje je brendirano Britannia, za bezbedan transport i skladi&scaron;tenje.&nbsp; Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta. Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. Svi relevantni sertifikati se nalaze u sigurnosnom blister pakovanju. Pločica ima jedinstveni serijski broj.</p>',
+                'price' => 1428949.00,
+                'price_avans' => 1428949.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 241,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 10g zlatna pločica',
+                'slug' => 'argor-heraeus-10g-zlatna-plocica',
+                'description' => '<p>Pločice 10g Argor Heraeus rafinerije <strong>precizno su izlivene od starog zlata iz nakita, satova i medicinskih uređaja</strong>.&nbsp; Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) reguli&scaron;e i garantuje kvalitet proizvodnje i trgovine dragocenim metalima i <strong>dodeljuje Good Delivery</strong> sertifikat, kojim isključuje mogućnost manipulacije kada su u pitanju Argor Heraeus 10g pločice.&nbsp;&nbsp;&nbsp; Poluge Argor Heraeus rafinerije karakteri&scaron;e i <strong>odlična likvidnost</strong>. Proizvod kupljen u <a href="https://zlatnistandard.rs/">Zlatnom Standardu &ndash; prodavnici za kupovinu zlata</a>, dolazi upakovan u za&scaron;titnom <strong>plastičnom blisteru</strong>, sa svim sertifikatima autentičnosti.</p>',
+                'price' => 115286.00,
+                'price_avans' => 114213.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 8,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C. Hafner 10g zlatna pločica',
+                'slug' => 'c-hafner-10g-zlatna-plocica',
+                'description' => '<p>Poluge 10 grama C. Hafner rafinerije <strong>precizno su izlivene od starog zlata iz nakita, satova i medicinskih uređaja</strong>.&nbsp; Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) reguli&scaron;e i garantuje kvalitet proizvodnje i trgovine dragocenim metalima<strong> i dodeljuje Good Delivery</strong> sertifikat, kojim isključuje mogućnost manipulacije kada je u pitanju zlatna poluga 10g.&nbsp;&nbsp;&nbsp; Investiciono zlato 10g C. Hafner rafinerije karakteri&scaron;e i <strong>odlična likvidnost</strong>. Proizvod kupljen u <a href="https://zlatnistandard.rs/">Zlatnom Standardu &ndash; prodavnici za kupovinu zlata</a>, dolazi upakovan u za&scaron;tritnom <strong>plastičnom blisteru</strong>, sa svim sertifikatima autentičnosti.</p>',
+                'price' => 115286.00,
+                'price_avans' => 114213.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 7,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x10g zlatna pločica',
+                'slug' => 'the-royal-mint-britannia-25x10g-zlatna-plocica',
+                'description' => '<p>Zlatna poluga od 10 grama Britannia, simbol je nepokolebljivog britanskog duha, kroz jedinstven dizajn Džodi Klark. Sa 10 grama čistog zlata, ova poluga je likvidan format i <strong>jedna od najpopularnijih gramaža</strong> među individualnim ulagačima u Srbiji.&nbsp; Poluga je upakovana u <strong>sigurnosno pakovanje koje je brendirano Britannia</strong>, za bezbedan transport i skladi&scaron;tenje. Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta. Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. Svi relevantni sertifikati se nalaze u sigurnosnom blister pakovanju. Pločica ima jedinstveni serijski broj.</p>',
+                'price' => 2801631.00,
+                'price_avans' => 2801631.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 243,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 20g zlatna pločica',
+                'slug' => 'argor-heraeus-20g-zlatna-plocica',
+                'description' => '<p>Investiciono zlato 20g Argor Heraeus rafinerije proizvodi se u <strong>standardizovanim uslovima koje kontroli&scaron;e </strong>Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;) i dodeljuje LBMA Good Delivery sertifikat koji isključuje mogućnost manipulacije robom. Proizvod Argor Heraeus 20g dolazi u plastificiranom blister pakovanju, sa svim sertifikatima autentičnosti. Uz visoku likvidnost, Argor Heraeus 20g investiciono zlato <strong>jedno je od najtraženijih na trži&scaron;tu</strong>, dok se u okviru na&scaron;e <a href="https://zlatnistandard.rs/">Zlatni Standard</a> ponude možete snabdeti ovim proizvodima. Nudimo i najbolje otkupne cene zlata uz upotrebu najnovije tehnologije za analizu dragocenih metala.</p>',
+                'price' => 228206.00,
+                'price_avans' => 227133.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 11,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner 20g zlatna pločica',
+                'slug' => 'chafner-20g-zlatna-plocica',
+                'description' => '<p>Investiciono zlato 20g C. Hafner rafinerije proizvodi se u <strong>standardizovanim uslovima koje kontroli&scaron;e </strong>Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;) i dodeljuje LBMA Good Delivery sertifikat koji isključuje mogućnost manipulacije robom. Proizvod C. Hafner 20g dolazi u plastificiranom blister pakovanju, sa svim sertifikatima autentičnosti. Uz visoku likvidnost, C. Hafner 20g investiciono zlato <strong>jedno je od najtraženijih na trži&scaron;tu</strong>, dok se u okviru na&scaron;e <a href="https://zlatnistandard.rs/">Zlatni Standard</a> ponude možete snabdeti ovim proizvodima. Nudimo i najbolje otkupne cene zlata uz upotrebu najnovije tehnologije za analizu dragocenih metala.</p>',
+                'price' => 228206.00,
+                'price_avans' => 227133.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 10,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x20g zlatna pločica',
+                'slug' => 'the-royal-mint-britannia-25x20g-zlatna-plocica',
+                'description' => '<p>Zlatna poluga od 20 grama Britannia, prikazuje snažnu sliku boginje Britannije kako drži svoj trident, kroz jedinstven dizajn Džodi Klark. Rimska boginja po kojoj je britanska nacija dobila ime, predstavlja večni simbol ponosa, snage i napretka zemlje.&nbsp; Sa 20 grama čistog zlata, ova poluga je <strong>najpopularniji vid ulaganja u investiciono zlato</strong> u Srbiji među individualnim ulagačima. Poluga je upakovana u sigurnosno pakovanje koje je brendirano Britannia, za bezbedan transport i skladi&scaron;tenje.&nbsp; Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta. Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. <strong>Svi relevantni sertifikati</strong> se nalaze u sigurnosnom blister pakovanju. Poluga ima jedinstveni serijski broj.</p>',
+                'price' => 5581705.00,
+                'price_avans' => 5581705.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 242,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 1 oz zlatna poluga',
+                'slug' => 'argor-heraeus-1-oz-zlatna-poluga',
+                'description' => '<p>1 unca Argor Heraeus rafinerije uz najbolje cene proizvoda na trži&scaron;tu. Svo investiciono zlato od 1 unce (31, 1g) i druge gramaže kod nas <strong>izrađeno je po najvi&scaron;im svetskim standarima nabavke zlatne rude i izrade finalnog proizvoda</strong>, a koje propisuje Udruženje učesnica trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Poluga Argor Heraeus 1 oz dolazi u prepoznatljivom i <strong>originalnom blister pakovanju</strong>, sa svim potrebnim sertifikatima za utrživanje proizvoda. <a href="https://zlatnistandard.rs/">Zlatni Standard</a> može biti pravi izbor za vas, ba&scaron; zato &scaron;to smo kompetentan sagovornik, zato &scaron;to imamo kontinuitet u snabdevanju i raspolažemo zalihama.</p>',
+                'price' => 350897.00,
+                'price_avans' => 349895.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 13,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner 1 oz zlatna poluga',
+                'slug' => 'chafner-1-oz-zlatna-poluga',
+                'description' => '<p>1 unca C. Hafner rafinerije uz najbolje cene proizvoda na trži&scaron;tu. Svo investiciono zlato od 1 unce (31,1g) i druge gramaže kod nas <strong>izrađeno je po najvi&scaron;im svetskim standarima nabavke zlatne rude i izrade finalnog proizvoda</strong>, a koje propisuje Udruženje učesnica trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Poluga C. Hafner 1 oz dolazi u prepoznatljivom i <strong>originalnom blister pakovanju</strong>, sa svim potrebnim sertifikatima za utrživanje proizvoda. <a href="https://zlatnistandard.rs/">Zlatni Standard</a> može biti pravi izbor za vas, ba&scaron; zato &scaron;to smo kompetentan sagovornik, zato &scaron;to imamo kontinuitet u snabdevanju i raspolažemo zalihama.</p>',
+                'price' => 350897.00,
+                'price_avans' => 349895.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 12,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x1oz zlatna poluga',
+                'slug' => 'the-royal-mint-britannia-25x1oz-zlatna-poluga',
+                'description' => '<p>Zlatna poluga od 1 unce Britannia, prikazuje nepogre&scaron;ivu inkarnaciju britanskog ponosa i hrabrosti: boginju Britanniju. <strong>Sa 31,1 grama čistog zlata</strong>, ova poluga predstavlja globalni standard za jedinicu težine zlata (jedna fina unca jednaka je 31,1 grama).&nbsp; Poluga je upakovana u <strong>sigurnosno pakovanje koje je brendirano Britannia</strong>, za bezbedan transport i skladi&scaron;tenje. Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta. Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. Svi relevantni sertifikati se nalaze u sigurnosnom blister pakovanju. Poluga težine 1 unca ima jedinstveni serijski broj.</p>',
+                'price' => 8638855.00,
+                'price_avans' => 8638855.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 244,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 50g zlatna poluga',
+                'slug' => 'argor-heraeus-50g-zlatna-poluga',
+                'description' => '<p>50g Argor Heraeus poluga nastaje standardizovanom proizvodnjom, čiju kontrolu obavlja organizacija Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Argor Heraeus 50g zlato finoće od 999,9 nastaje kao produkt izrade u strogo kontrolisanim uslovima. Svaki proizvod 50g Argor Heraeus dolazi u <strong>jedinstvenom plastificiranom blister pakovanju, </strong>koje ima za&scaron;titnu ulogu i pohranjeno je LBMA Good Delivery sertifikatom, kao garantom da se proizvod može utržiti, kao i da nisu moguće manipulacije pri trgovini.</p>',
+                'price' => 561396.00,
+                'price_avans' => 561396.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 15,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner 50g zlatna poluga',
+                'slug' => 'chafner-50g-zlatna-poluga',
+                'description' => '<p>50g C. Hafner poluga nastaje standardizovanom proizvodnjom, čiju kontrolu obavlja organizacija Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). C. Hafner 50g zlato finoće 999,9 nastaje kao produkt izrade u strogo kontrolisanim uslovima. Svaki proizvod 50g C. Hafner dolazi u <strong>jedinstvenom plastificiranom blister pakovanju, </strong>koje ima za&scaron;tritnu ulogu i pohranjeno je LBMA Good Delivery sertifikatom, kao garantom da se proizvod može utržiti, kao i da nisu moguće manipulacije pri trgovini.</p>',
+                'price' => 561396.00,
+                'price_avans' => 561396.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 14,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x50g zlatna poluga',
+                'slug' => 'the-royal-mint-britannia-25x50g-zlatna-poluga',
+                'description' => '<p>Zlatna poluga od 50 grama Britannia, prikazuje boginju Britaniju sa trozupcem, kako gleda u daljinu preko morskih talasa i čuva obale britanskih ostrva. Atraktivan dizajn simboli&scaron;e snagu i otpornost, &scaron;to ovaj proizvod i donosi svakom ulagaču.&nbsp; <strong>Sa 50 grama čistog zlata</strong>, ova poluga predstavlja format ulaganja koji tipično biraju krupniji ulagači u investiciono zlato. Poluga je upakovana u sigurnosno pakovanje koje je brendirano Britannia, za bezbedan transport i skladi&scaron;tenje. Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta. Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda.&nbsp; <strong>Svi relevantni sertifikati</strong> se nalaze u sigurnosnom blisteru. Poluga ima jedinstveni serijski broj.</p>',
+                'price' => 13820217.00,
+                'price_avans' => 13820217.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 245,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Argor Heraeus 100g zlatna poluga',
+                'slug' => 'argor-heraeus-100g-zlatna-poluga',
+                'description' => '<p>Investiciono zlato 100g Argor Heraeus rafinerije nastaje standardizovanom proizvodnjom koju kontroli&scaron;e organizacija Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Svaki Argor Heraeus 100g proizvod dolazi u <strong>jedinstvenom plastificiranom blister pakovanju</strong> sa svim sertifikatima kao garantima autentičnosti i LBMA Good Delivery sertifikatom koji pruža sigurnost od manipulacije ovom vrednom robom. Argor Heraeus 100g najvećeg kvaliteta poluge nastale pod unapred propisanim i standardizovanim uslovima mogu biti va&scaron;e jednostavnom kupovinom.</p>',
+                'price' => 1114202.00,
+                'price_avans' => 1114202.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 17,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner 100g zlatna poluga',
+                'slug' => 'chafner-100g-zlatna-poluga',
+                'description' => '<p>Investiciono zlato 100g C. Hafner rafinerije nastaje standardizovanom proizvodnjom koju kontroli&scaron;e organizacija Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Svaki C. Hafner 100g proizvod dolazi u <strong>jedinstvenom plastificiranom blister pakovanju</strong> sa svim sertifikatima kao garantima autentičnosti i LBMA Good Delivery sertifikatom koji pruža sigurnost od manipulacije ovom vrednom robom. Hafner 100g najvećeg kvaliteta poluge nastale pod unapred propisanim i standardizovanim uslovima mogu biti va&scaron;e jednostavnom kupovinom.</p>',
+                'price' => 1114202.00,
+                'price_avans' => 1114202.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 16,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'The Royal Mint Britannia 25x100g zlatna poluga',
+                'slug' => 'the-royal-mint-britannia-25x100g-zlatna-poluga',
+                'description' => '<p>Zlatna poluga od 100 grama Britannia, prikazuje boginju Britaniju sa njenim trozupcem, stilizovanim morskim talasima u pozadini kao aluzijom na njenu neprestanu budnost i za&scaron;titu obala britanskih ostrva. Sa 100 grama čistog zlata, ova poluga predstavlja format ulaganja koji biraju krupniji ulagači.&nbsp; Ovaj format takođe daje mogućnost individualnim ulagačima da postignu jednu od najpovoljnijih cena po gramu zlata za konkretan likvidnosni profil. Poluga je upakovana u <strong>sigurnosno pakovanje koje je brendirano Britanijom</strong>, za bezbedan transport i skladi&scaron;tenje. Na pakovanju se nalazi providna, odstranjiva folija koja &scaron;titi blister tokom transporta.&nbsp; Može se skinuti nakon &scaron;to vam proizvod bude isporučen, bez uticaja na originalnu i utrživu vrednost proizvoda. <strong>Svi relevantni sertifikati</strong> se nalaze u sigurnosnom blister pakovanju. Poluga ima jedinstveni serijski broj.</p>',
+                'price' => 27506170.00,
+                'price_avans' => 27506170.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 246,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Zlatna poluga 250g C. Hafner',
+                'slug' => 'zlatna-poluga-250g-c-hafner',
+                'description' => '<p>Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) obavlja kontrolu proizvodnje i dodeljuje <strong>LBMA Good Delivery sertifikat</strong>, koja isključuje mogućnost manipulacije robom. Zlatne poluge od 250g pouzdane rafinerije iz Nemačke &ndash; C. Hafner, koja je ujedno porodična firma, već vi&scaron;e od 160 godina isporučuje zlatne proizvode od <strong>recikliranog zlata</strong> <strong>najvi&scaron;eg mogućeg kvaliteta</strong>. Zlatna poluga 250 grama rafinerije C. Hafner su proizvodi od čistog zlata finoće 999,9.&nbsp; <strong>Na prednjoj strani</strong> poluge od 250 grama nalazi se logo kompanije, godina osnivanja (1850), zemlja porekla (Nemačka), oznaka za finu težinu od 250 grama i fino zlato 999,9. Sa druge strane možete videti i serijski broj kao jo&scaron; jedan dokaz originalnosti. <strong>Potvrda o LBMA sertifikatu se nalazi na blisteru</strong>, autentičnom za&scaron;tritnom pakovanju u kome se nalazi zlatna poluga 250 grama. Imamo sjajan kontinuitet u snabdevanju, tako da zlatne poluge od 250 grama kod nas možete kupovati dugoročno uz najpovoljnije cene na trži&scaron;tu.</p>',
+                'price' => 2755990.00,
+                'price_avans' => 2755990.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 18,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C. Hafner 500g zlatna poluga',
+                'slug' => 'c-hafner-500g-zlatna-poluga',
+                'description' => '<p>Zlatne poluge 500g rafinerije C. Hafner nastaju kao produkt porodične proizvodnje u Nemačkoj i to po standardizovanim uslovima koje kontroli&scaron;e <strong>Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona</strong> (&ldquo;London Bullion Market Association ili LBMA&rdquo;). <strong>Good Delivery sertifikat</strong> organizacije LBMA znači da nema mogućnosti za ugovorne strane da dođe do manipulacije robom i ostvaruju se sigurni uslovi za utrživanje proizvoda, a poseduje ga i svaka zlatna poluga 500g iz <a href="https://zlatnistandard.rs/">Zlatni Standard</a> ponude. Hafner rafinerija je porodični biznis iz malog mesta u Nemačkoj, sa sopstvenom proizvodnjom i u skladu sa svim važećim standardima. Na prednjoj strani zlatne poluge 500 grama rafinerije C. Hafner možete videti logo kompanije, 1850. godinu kao godinu osnivanja, natpis zemlje porekla (Nemačka) i <strong>oznake za fino zlato najboljeg kvaliteta</strong>. Na poleđini se nalazi serijski broj i informacija o težini, dok se na plastičnom blister pakovanju može videti istaknut LBMA sertifikat.</p>',
+                'price' => 5501241.00,
+                'price_avans' => 5501241.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 19,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner zlatna poluga 1kg',
+                'slug' => 'chafner-zlatna-poluga-1kg',
+                'description' => '<p>Zlatna poluga kg rafinerije C. Hafner nastaje u strogo kontrolisanim uslovima kao produkt od čistog zlata.&nbsp; Porodični biznis u gradu Pforzheima u Nemačkoj i <strong>rafinerija C. Hafner ima preko 160 godina tradicije</strong> isporučivanja visokokvalitetnih zlatnih poluga nastalih u uslovima standardizovane proizvodnje. Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) reguli&scaron;e i garantuje kvalitet proizvodnje i kontroli&scaron;e nastanak zlatnih poluga od 1000g. Zlatna poluga kg isporučuje se u plastičnom, za&scaron;tritnom blisteru na kome se nalazi sertifikat proizvoda, finoće 999,9 sa jedinstvenim serijskim brojem. Ukoliko ste razmi&scaron;ljali da va&scaron;a opcija za kupovinu bude <strong>zlatna poluga 1kg cena</strong> je definitivno ne&scaron;to &scaron;to će vas zanimati. Slobodno nas kontaktirajte radi vi&scaron;e informacija.</p>',
+                'price' => 10970283.00,
+                'price_avans' => 10970283.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 20,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Mali dukat Franc Jozef – jednostruki',
+                'slug' => 'mali-dukat-franc-jozef-jednostruki',
+                'description' => '<p>Mali dukat Franc Jozef sa sobom nosi određeno istorijsko nasleđe i predstavlja simbol moći i elegancije. Ove kovanice su prvi put izrađene davne 1872. godine i do danas su ostale autentične uz male izmene. <strong>Austrijska kovnica </strong><strong>M&uuml;nze &Ouml;sterreich</strong> utiskuje i broj 1915, &scaron;to je godina pre smrti čuvenog Franca Josifa, vi&scaron;edecenijskog vladara Austro-Ugarske.&nbsp; Na gornjoj strani se nalazi <strong>lik Austrijskog cara Franca Jozefa</strong> i latinska izreka &rdquo;FRANC IOS I D G AVSTRIAE IMPERATOR (&ldquo;Po milosti Božijoj Austrijski car&rdquo;), dok je na donjoj strani utisnut simbol Autro-Ugarskog carskog orla sa dve glave, iznad kojih je kruna. Iznad orla je natpis &rdquo;HUNGAR BOHEM GAL LOD ILL REX A A 1915&rdquo; (skraćenice zemalja kojima je vladao). Pored izuzetnog istorijskog nasleđa koje nosi sa sobom, jednostruki mali dukat Franc Jozef može biti sjajan poklon dragim osobama.</p>',
+                'price' => 41749.00,
+                'price_avans' => 41565.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 21,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Veliki dukat Franc Jozef – četvorostruki',
+                'slug' => 'veliki-dukat-franc-jozef-cetvorostruki',
+                'description' => '<p>Dukat Franc Jozef veliki smatra se jednim od vrednijih novčića u Evropi, dok ga karakteri&scaron;e istorijsko nasleđe nekada&scaron;nje Austro-Ugarske monarhije i posebno lik Franca Jozefa, koji je 68 godina upravljao ovom nekada velesilom Evrope. Veliki dukat Franc Jozef na prednjoj strani, za razliku od jednostrukog novčića, a osim <strong>glave pokazuje i gornji deo tela vladara</strong>. Iznad njegove glave se nalazi natpis: &ldquo;FRANC IOS IDG AVSTRIAE IMPERATOR&rdquo;. Na zadnjoj strani se vidi <strong>Austrijski dvoglavi orao</strong> i natpis &ldquo;HUNGAR BOHEM GAL LOD ILL REX A A 1915&rdquo;. Četiri puta je teži od jednostruke verzije i takođe ga proizvodi renomirana kovnica <strong>M&uuml;nze &Ouml;sterreich.</strong> Dukat Franc Jozef 13.96gr smatra se izuzetno vrednim poklonom.&nbsp; Dukat Franc Jozef četvorostruki novčić može biti va&scaron; kupovinom online ili ako nas posetite na adresi Balkanska 2.&nbsp;</p>',
+                'price' => 161838.00,
+                'price_avans' => 161099.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 22,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Wiener Philharmoniker 1oz zlatni dukat',
+                'slug' => 'wiener-philharmoniker-1oz-zlatni-dukat',
+                'description' => '<p>Bečka Filharmonija dukat od 1 unce ili dukat Wiener Philharmoniker 1oz jeste <strong>novčić izrađen od 1 unce finog zlata 999,9</strong>. Moguće ga je koristiti kao sredstvo plaćanja i njegova nominalna vrednost iznosi 100 eura. U 12. veku ga je kreirao vojvoda Leopold V i <strong>predstavlja čuvenu Bečku filharmoniju</strong>, najpoznatiji i najpo&scaron;tovaniji simfonijski orkestar na svetu. <strong>Na zadnjoj strani dukata</strong> nalaze se instrumenti koji simboli&scaron;u Bečku filharmoniju, a iznad kojih je ispis na nemačkom jeziku &ldquo;WEINER PHILHARMONIKER&ldquo; (Bečka filharmonija). Dukat Bečka filharmonija <strong>sa prednje strane</strong> ima orgulje koncertne dvorane Musikverein u Beču, dok se iznad toga nalazi ispis na nemačkom jeziku &bdquo;REPUBLIK &Ouml;STERREICH&ldquo; (Republika Austrija). Ispod orgulja se nalaze informacije kao &scaron;to su težina, čistoća, godina kovanja i nominalna vrednost od 100 eura.</p>',
+                'price' => 354235.00,
+                'price_avans' => 353568.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 23,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner smartpack zlatne pločice 10g (10x1g)',
+                'slug' => 'chafner-zlatne-plocice-10g-10x1g',
+                'description' => '<p><strong>Hafner zlatne pločice (10x1g) </strong>su odlična prilika da jednom kupovinom dobijete 10 zlatnih pločica od 1g. Sertifikovane zlatne poluge od 1g priznate su od Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;) i dolaze sa LBMA Good Delivery sertifikatom. Porodična rafinerija C. Hafner već vi&scaron;e od 160 godina na trži&scaron;te plasira najkvalitenije proizvode i zlatne poluge od najfinijeg recikliranog zlata nastalog preradom zlatnih predmeta. Sve pločice u kompletu dolaze u za&scaron;tritnim <strong>plastičnim blister pakovanjima</strong>, sa svim sertifikatima autentičnosti.</p>',
+                'price' => 125591.00,
+                'price_avans' => 123444.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 239,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'C.Hafner smartpack zlatne pločice 20g (10x2g)',
+                'slug' => 'chafner-zlatne-plocice-20g-10x2g',
+                'description' => '<p><strong>Hafner zlatne pločice (10x2g) </strong>su odlična prilika da jednom kupovinom dobijete 10 zlatnih pločica od 2g. Sertifikovane zlatne poluge od 2g priznate su od Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;) i dolaze sa LBMA Good Delivery sertifikatom. Porodična rafinerija C. Hafner već vi&scaron;e od 160 godina na trži&scaron;te plasira najkvalitenije proizvode i zlatne poluge od najfinijeg recikliranog zlata nastalog preradom zlatnih predmeta. Sve pločice u kompletu dolaze u za&scaron;tritnim <strong>plastičnim blister pakovanjima</strong>, sa svim sertifikatima autentičnosti.</p>',
+                'price' => 243667.00,
+                'price_avans' => 241520.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 9,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Zlatni Standard 2g zlatna pločica za krštenje',
+                'slug' => 'zlatna-plocica-za-krstenje-zlatni-standard',
+                'description' => '<p>Zlatne pločice za kr&scaron;tenje od 2 grama precizno su izlivene od starog zlata iz nakita, satova i medicinskih uređaja. Udruženje učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association ili LBMA&rdquo;) <strong>reguli&scaron;e i garantuje kvalitet proizvodnje</strong> i trgovine dragocenim metalima i dodeljuje Good Delivery sertifikat. Zahvaljujući njemu, isključena je mogućnost manipulacije kada su u pitanju zlatne pločice za kr&scaron;tenje od 2g. <strong>Garant kupovine originalnog i vrednog poklona za kr&scaron;tenje</strong>. Zlatne pločice za kr&scaron;tenje karakteri&scaron;e i odlična likvidnost. Proizvod kupljen u <a href="https://zlatnistandard.rs/">Zlatnom Standardu &ndash; prodavnici za kupovinu zlata</a>, dolazi upakovan u za&scaron;tritnom plastičnom blisteru, sa svim sertifikatima autentičnosti. C. Hafner je <strong>jedna od najprestižnijih livnica i rafinerija u Evropi</strong>, osnovana 1850. godine u Nemačkoj i danas je jedan od vodećih LBMA akreditovanih igrača na polju dragocenih metala u svetu.</p>',
+                'price' => 24963.00,
+                'price_avans' => 24605.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 249,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Zlatni Standard 2g zlatna pločica za poklon',
+                'slug' => 'zlatna-plocica-za-poklon-zlatni-standard',
+                'description' => '<p>Zlatna pločica za poklon 2g nastaje<strong> standardizovanom proizvodnjom</strong> koju kontroli&scaron;e organizacija Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Svaka zlatna pločica za poklon 2g dolazi u jedinstvenom plastificiranom blister pakovanju sa svim sertifikatima kao <strong>garantima autentičnosti i LBMA Good Delivery sertifikatom</strong> koji pruža sigurnost od manipulacije ovom vrednom robom. Zlatni Standard 2g zlatna pločica za poklon najvećeg kvaliteta nastaje pod unapred propisanim i standardizovanim uslovima i može biti va&scaron; jednostavnom kupovinom. <strong>Originalan, dragocen i vredan poklon za svaku priliku!</strong> C. Hafner je <strong>jedna od najprestižnijih livnica i rafinerija u Evropi</strong>, osnovana 1850. godine u Nemačkoj i danas je jedan od vodećih LBMA akreditovanih igrača na polju dragocenih metala u svetu.</p>',
+                'price' => 25118.00,
+                'price_avans' => 25225.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 247,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Zlatni Standard zlatna pločica 2g za rođenje',
+                'slug' => 'zlatna-plocica-za-rodenje-zlatni-standard',
+                'description' => '<p>Zlatne pločice za rođenje precizno su izlivene u standardizovanim i kontrolisanim uslovima. Kontrolu procesa proizvodnje nadgleda <strong>Udruženja učesnika trži&scaron;ta dragocenih metala iz Londona</strong> (&ldquo;London Bullion Market Association&rdquo; ili &ldquo;LBMA&rdquo;). Pločice za rođenje 2g finoće 999,9 iz ponude <a href="https://zlatnistandard.rs/">Zlatnog standarda &ndash; prodavnice za kupovinu zlata</a>, spakovana je, prodaje se i dostavlja u <strong>originalnom plastičnom blister pakovanju</strong> i to zajedno sa sertifikatom o autentičnosti.&nbsp;&nbsp; Sve važne informacije kao &scaron;to su oznake za težinu, čistoću zlata i jedinstveni serijski broj pločice za rođenje 2 grama nalaze se na frontalnoj strani. C. Hafner je <strong>jedna od najprestižnijih livnica i rafinerija u Evropi</strong>, osnovana 1850. godine u Nemačkoj i danas je jedan od vodećih LBMA akreditovanih igrača na polju dragocenih metala u svetu.</p>',
+                'price' => 25276.00,
+                'price_avans' => 24829.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => 248,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Srebrne poluge 100g (10X10G)',
+                'slug' => 'srebrne-poluge-100g-10x10g',
+                'description' => '',
+                'price' => 20268.00,
+                'price_avans' => 20268.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => null,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Srebrna poluga 10 oz',
+                'slug' => 'srebrna-poluga-10-oz',
+                'description' => '',
+                'price' => 45705.00,
+                'price_avans' => 45705.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => null,
+                'is_demo' => 1
+            ),
+            array(
+                'name' => 'Srebrna poluga 5 kg',
+                'slug' => 'srebrna-poluga-5-kg',
+                'description' => '',
+                'price' => 658707.00,
+                'price_avans' => 658707.00,
+                'avans_activate' => 1,
+                'status' => 'published',
+                'external_id' => null,
+                'is_demo' => 1
+            ),
+            array(
             array(
                 'name' => 'Zlatna poluga 1g PAMP Suisse',
                 'description' => 'Zlatna poluga renomiranog švajcarskog proizvođača PAMP Suisse. Čistoća 999.9 finoga zlata.',
@@ -1320,25 +1719,16 @@ class GCC_Database
 
         $product_data = array(
             'name' => sanitize_text_field($data['name']),
-            'description' => sanitize_textarea_field($data['description']),
-            'article_number' => sanitize_text_field($data['article_number']),
-            'type' => sanitize_text_field($data['type']),
-            'weight' => sanitize_text_field($data['weight']),
-            'price_net' => floatval($data['price_net']),
-            'price_gross' => floatval($data['price_gross']),
-            'number_products' => intval($data['number_products']),
+            'slug' => sanitize_title($data['slug']),
+            'description' => wp_kses_post($data['description']),
+            'price' => floatval($data['price']),
+            'price_avans' => floatval($data['price_avans']),
+            'avans_activate' => intval($data['avans_activate']),
+            'currency' => sanitize_text_field($data['currency']),
             'status' => sanitize_text_field($data['status']),
-            'featured_image' => esc_url_raw($data['featured_image']),
-            'buying_price' => floatval($data['buying_price']),
-            'selling_price' => floatval($data['selling_price']),
-            'image_url' => esc_url_raw($data['image_url']),
-            'stock_available' => isset($data['stock_available']) ? 1 : 0,
-            'advance_payment_available' => isset($data['advance_payment_available']) ? 1 : 0,
-            'stock_markup_percent' => floatval($data['stock_markup_percent']),
-            'advance_discount_percent' => floatval($data['advance_discount_percent']),
-            'external_id' => sanitize_text_field($data['external_id']),
-            'is_active' => isset($data['is_active']) ? 1 : 0,
-            'price_updated_at' => current_time('mysql')
+            'user_id' => intval($data['user_id']),
+            'highlighted' => intval($data['highlighted']),
+            'external_id' => !empty($data['external_id']) ? intval($data['external_id']) : null
         );
 
         $result = $wpdb->insert($this->table_products, $product_data);
@@ -1356,25 +1746,16 @@ class GCC_Database
 
         $product_data = array(
             'name' => sanitize_text_field($data['name']),
-            'description' => sanitize_textarea_field($data['description']),
-            'article_number' => sanitize_text_field($data['article_number']),
-            'type' => sanitize_text_field($data['type']),
-            'weight' => sanitize_text_field($data['weight']),
-            'price_net' => floatval($data['price_net']),
-            'price_gross' => floatval($data['price_gross']),
-            'number_products' => intval($data['number_products']),
+            'slug' => sanitize_title($data['slug']),
+            'description' => wp_kses_post($data['description']),
+            'price' => floatval($data['price']),
+            'price_avans' => floatval($data['price_avans']),
+            'avans_activate' => intval($data['avans_activate']),
+            'currency' => sanitize_text_field($data['currency']),
             'status' => sanitize_text_field($data['status']),
-            'featured_image' => esc_url_raw($data['featured_image']),
-            'buying_price' => floatval($data['buying_price']),
-            'selling_price' => floatval($data['selling_price']),
-            'image_url' => esc_url_raw($data['image_url']),
-            'stock_available' => isset($data['stock_available']) ? 1 : 0,
-            'advance_payment_available' => isset($data['advance_payment_available']) ? 1 : 0,
-            'stock_markup_percent' => floatval($data['stock_markup_percent']),
-            'advance_discount_percent' => floatval($data['advance_discount_percent']),
-            'external_id' => sanitize_text_field($data['external_id']),
-            'is_active' => isset($data['is_active']) ? 1 : 0,
-            'price_updated_at' => current_time('mysql')
+            'user_id' => intval($data['user_id']),
+            'highlighted' => intval($data['highlighted']),
+            'external_id' => !empty($data['external_id']) ? intval($data['external_id']) : null
         );
 
         $result = $wpdb->update($this->table_products, $product_data, array('id' => $id));
@@ -1544,24 +1925,6 @@ class GCC_Database
             array(
                 'name' => 'ZLATIJA',
                 'greeting_message' => 'Zdravo! Ja sam ZLATIJA – vaš vodič kroz svet investicionog zlata. Hajde da pronađemo najbolji paket zlata za vaš budžet! 💰',
-                'image_url' => '',
-                'active' => 1
-            ),
-            array(
-                'name' => 'ZLATA',
-                'greeting_message' => 'Pozdrav! Ja sam ZLATA, vaš ekspert za investicije u zlato. Spremna sam da vam pomognem da pronađete savršenu investiciju! ✨',
-                'image_url' => '',
-                'active' => 1
-            ),
-            array(
-                'name' => 'ZLATKA',
-                'greeting_message' => 'Zdravo! Ja sam ZLATKA i tu sam da vam pomognem u svetu investicionog zlata. Hajde da napravimo pametnu investiciju zajedno! 🏆',
-                'image_url' => '',
-                'active' => 1
-            ),
-            array(
-                'name' => 'ZLATISLAVA',
-                'greeting_message' => 'Dobrodošli! Ja sam ZLATISLAVA, vaš savetnik za investicije u zlato. Spremna sam da vam ukažem na najbolje mogućnosti! 👑',
                 'image_url' => '',
                 'active' => 1
             )
@@ -2508,5 +2871,114 @@ class GCC_Database
         $this->insert_sample_products();
         
         return true;
+    }
+
+    /**
+     * Drop and recreate products table with new structure
+     */
+    public function recreate_products_table() {
+        global $wpdb;
+        
+        // Drop existing table
+        $wpdb->query("DROP TABLE IF EXISTS $this->table_products");
+        
+        // Recreate table with new structure
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql_products = "CREATE TABLE $this->table_products (
+            id int(11) NOT NULL AUTO_INCREMENT,
+            name varchar(255) NOT NULL,
+            slug varchar(255) NOT NULL,
+            description text,
+            price decimal(10,2) NOT NULL,
+            price_avans decimal(10,2) NOT NULL,
+            avans_activate tinyint(1) DEFAULT 0,
+            currency varchar(10) DEFAULT NULL,
+            status enum('published', 'draft') DEFAULT 'draft',
+            user_id int(11) DEFAULT 1,
+            highlighted tinyint(1) DEFAULT 0,
+            expire_at datetime DEFAULT NULL,
+            published_at datetime DEFAULT NULL,
+            external_id int(11) DEFAULT NULL,
+            deleted_at datetime DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY external_id (external_id),
+            KEY slug (slug),
+            KEY status (status),
+            KEY user_id (user_id),
+            KEY highlighted (highlighted)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql_products);
+        
+        return true;
+    }
+
+    /**
+     * Import products from JSON file
+     */
+    public function import_products_from_json($json_file_path) {
+        global $wpdb;
+        
+        if (!file_exists($json_file_path)) {
+            return false;
+        }
+        
+        $json_content = file_get_contents($json_file_path);
+        
+        // Replace NaN with null for proper JSON parsing
+        $json_content = str_replace('NaN', 'null', $json_content);
+        
+        $products = json_decode($json_content, true);
+        
+        if (!$products || !is_array($products)) {
+            return false;
+        }
+        
+        foreach ($products as $product) {
+            $product_data = array(
+                'name' => sanitize_text_field($product['name']),
+                'slug' => sanitize_title($product['slug']),
+                'description' => isset($product['description']) && $product['description'] !== null ? wp_kses_post($product['description']) : '',
+                'price' => floatval($product['price']),
+                'price_avans' => floatval($product['price_avans']),
+                'avans_activate' => intval($product['avans_activate']),
+                'currency' => $product['currency'],
+                'status' => sanitize_text_field($product['status']),
+                'user_id' => intval($product['user_id']),
+                'highlighted' => intval($product['highlighted']),
+                'expire_at' => $product['expire_at'],
+                'published_at' => $product['published_at'],
+                'external_id' => $product['external_id'] ? intval($product['external_id']) : null,
+                'deleted_at' => $product['deleted_at'],
+                'created_at' => $product['created_at'],
+                'updated_at' => $product['updated_at']
+            );
+            
+            $result = $wpdb->insert($this->table_products, $product_data);
+            if ($result === false) {
+                error_log("Failed to insert product: " . $product['name'] . " - " . $wpdb->last_error);
+            }
+        }
+        
+        return true;
+    }
+
+    /**
+     * Recreate products table and import from JSON
+     */
+    public function recreate_and_import_products($json_file_path = null) {
+        if (!$json_file_path) {
+            $json_file_path = plugin_dir_path(__FILE__) . '../products_active.json';
+        }
+        
+        // Recreate table
+        $this->recreate_products_table();
+        
+        // Import products
+        return $this->import_products_from_json($json_file_path);
     }
 }

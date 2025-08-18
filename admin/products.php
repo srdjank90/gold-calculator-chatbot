@@ -17,9 +17,8 @@
                 <select name="order_by">
                     <option value="created_at" <?php selected($order_by, 'created_at'); ?>>Date Created</option>
                     <option value="name" <?php selected($order_by, 'name'); ?>>Name</option>
-                    <option value="article_number" <?php selected($order_by, 'article_number'); ?>>Article Number</option>
-                    <option value="type" <?php selected($order_by, 'type'); ?>>Type</option>
-                    <option value="price_net" <?php selected($order_by, 'price_net'); ?>>Price Net</option>
+                    <option value="external_id" <?php selected($order_by, 'external_id'); ?>>External ID</option>
+                    <option value="price" <?php selected($order_by, 'price'); ?>>Price</option>
                     <option value="status" <?php selected($order_by, 'status'); ?>>Status</option>
                 </select>
                 <select name="order">
@@ -39,12 +38,11 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Article Number</th>
-                        <th>Type</th>
-                        <th>Weight</th>
-                        <th>Price Net</th>
-                        <th>Price Gross</th>
-                        <th>Stock</th>
+                        <th>Slug</th>
+                        <th>External ID</th>
+                        <th>Price</th>
+                        <th>Price Avans</th>
+                        <th>Avans Active</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -54,12 +52,11 @@
                         <tr>
                             <td><?php echo esc_html($product->id); ?></td>
                             <td><?php echo esc_html($product->name); ?></td>
-                            <td><?php echo esc_html($product->article_number); ?></td>
-                            <td><?php echo esc_html($product->type); ?></td>
-                            <td><?php echo esc_html($product->weight); ?></td>
-                            <td>€<?php echo number_format($product->price_net, 2); ?></td>
-                            <td>€<?php echo number_format($product->price_gross, 2); ?></td>
-                            <td><?php echo esc_html($product->number_products); ?></td>
+                            <td><?php echo esc_html($product->slug); ?></td>
+                            <td><?php echo esc_html($product->external_id); ?></td>
+                            <td>€<?php echo number_format($product->price, 2); ?></td>
+                            <td>€<?php echo number_format($product->price_avans, 2); ?></td>
+                            <td><?php echo $product->avans_activate ? 'Yes' : 'No'; ?></td>
                             <td>
                                 <span class="gcc-status-badge gcc-status-<?php echo $product->status; ?>">
                                     <?php echo ucfirst($product->status); ?>
@@ -138,41 +135,51 @@
                         <input type="text" id="product-name" name="name" required>
                     </div>
                     <div class="gcc-form-group">
-                        <label for="product-article-number">Article Number</label>
-                        <input type="text" id="product-article-number" name="article_number">
+                        <label for="product-slug">Slug *</label>
+                        <input type="text" id="product-slug" name="slug" required>
                     </div>
                 </div>
                 
                 <div class="gcc-form-row">
                     <div class="gcc-form-group">
-                        <label for="product-type">Type *</label>
-                        <select id="product-type" name="type" required>
-                            <option value="bar">Bar</option>
-                            <option value="ducat">Ducat</option>
+                        <label for="product-external-id">External ID</label>
+                        <input type="number" id="product-external-id" name="external_id">
+                    </div>
+                    <div class="gcc-form-group">
+                        <label for="product-user-id">User ID</label>
+                        <input type="number" id="product-user-id" name="user_id" value="1">
+                    </div>
+                </div>
+                
+                <div class="gcc-form-row">
+                    <div class="gcc-form-group">
+                        <label for="product-price">Price *</label>
+                        <input type="number" id="product-price" name="price" step="0.01" required>
+                    </div>
+                    <div class="gcc-form-group">
+                        <label for="product-price-avans">Price Avans *</label>
+                        <input type="number" id="product-price-avans" name="price_avans" step="0.01" required>
+                    </div>
+                </div>
+                
+                <div class="gcc-form-row">
+                    <div class="gcc-form-group">
+                        <label for="product-avans-activate">Avans Activate</label>
+                        <select id="product-avans-activate" name="avans_activate">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
                         </select>
                     </div>
                     <div class="gcc-form-group">
-                        <label for="product-weight">Weight *</label>
-                        <input type="text" id="product-weight" name="weight" required>
+                        <label for="product-highlighted">Highlighted</label>
+                        <select id="product-highlighted" name="highlighted">
+                            <option value="0">No</option>
+                            <option value="1">Yes</option>
+                        </select>
                     </div>
                 </div>
                 
                 <div class="gcc-form-row">
-                    <div class="gcc-form-group">
-                        <label for="product-price-net">Price Net *</label>
-                        <input type="number" id="product-price-net" name="price_net" step="0.01" required>
-                    </div>
-                    <div class="gcc-form-group">
-                        <label for="product-price-gross">Price Gross *</label>
-                        <input type="number" id="product-price-gross" name="price_gross" step="0.01" required>
-                    </div>
-                </div>
-                
-                <div class="gcc-form-row">
-                    <div class="gcc-form-group">
-                        <label for="product-number-products">Number of Products</label>
-                        <input type="number" id="product-number-products" name="number_products" min="0" value="0">
-                    </div>
                     <div class="gcc-form-group">
                         <label for="product-status">Status</label>
                         <select id="product-status" name="status">
@@ -180,16 +187,15 @@
                             <option value="published">Published</option>
                         </select>
                     </div>
+                    <div class="gcc-form-group">
+                        <label for="product-currency">Currency</label>
+                        <input type="text" id="product-currency" name="currency">
+                    </div>
                 </div>
                 
                 <div class="gcc-form-group">
                     <label for="product-description">Description</label>
                     <textarea id="product-description" name="description" rows="3"></textarea>
-                </div>
-                
-                <div class="gcc-form-group">
-                    <label for="product-featured-image">Featured Image URL</label>
-                    <input type="url" id="product-featured-image" name="featured_image">
                 </div>
                 
                 <div class="gcc-form-actions">
@@ -384,15 +390,16 @@ jQuery(document).ready(function($) {
                 if (response.success) {
                     var product = response.data;
                     $('#product-name').val(product.name);
-                    $('#product-article-number').val(product.article_number);
-                    $('#product-type').val(product.type);
-                    $('#product-weight').val(product.weight);
-                    $('#product-price-net').val(product.price_net);
-                    $('#product-price-gross').val(product.price_gross);
-                    $('#product-number-products').val(product.number_products);
+                    $('#product-slug').val(product.slug);
+                    $('#product-external-id').val(product.external_id);
+                    $('#product-user-id').val(product.user_id);
+                    $('#product-price').val(product.price);
+                    $('#product-price-avans').val(product.price_avans);
+                    $('#product-avans-activate').val(product.avans_activate);
+                    $('#product-highlighted').val(product.highlighted);
                     $('#product-status').val(product.status);
+                    $('#product-currency').val(product.currency);
                     $('#product-description').val(product.description);
-                    $('#product-featured-image').val(product.featured_image);
                     $('#gcc-product-modal').show();
                 } else {
                     alert('Failed to load product data: ' + response.data.message);
