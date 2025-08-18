@@ -12,6 +12,10 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+add_filter('http_request_timeout', function () {
+    return 60; // sekundi
+});
+
 // Main plugin class
 class GoldCalculatorChatbot
 {
@@ -24,7 +28,7 @@ class GoldCalculatorChatbot
 
         // Hook for price sync cron job
         add_action('gcc_price_sync_cron', array($this, 'run_price_sync'));
-        
+
         // Hook for exchange rate sync cron job
         add_action('gcc_exchange_sync_cron', array($this, 'run_exchange_sync'));
     }
@@ -475,21 +479,21 @@ class GoldCalculatorChatbot
             // Clear any existing crons first
             wp_clear_scheduled_hook('gcc_price_sync_cron');
             wp_clear_scheduled_hook('gcc_exchange_sync_cron');
-            
+
             // Schedule a frequently running price sync cron
             // Try different WordPress schedules in order of preference
             $schedules = wp_get_schedules();
-            
+
             $price_sync_schedule = 'hourly'; // fallback
             if (isset($schedules['fifteen_minutes'])) {
                 $price_sync_schedule = 'fifteen_minutes';
             } elseif (isset($schedules['five_minutes'])) {
                 $price_sync_schedule = 'five_minutes';
             }
-            
+
             $result1 = wp_schedule_event(time(), $price_sync_schedule, 'gcc_price_sync_cron');
             error_log('GCC Activation: Price sync cron scheduled with ' . $price_sync_schedule . ' - ' . ($result1 ? 'success' : 'failed'));
-            
+
             // Schedule exchange rate sync cron job (twice daily)
             $result2 = wp_schedule_event(time(), 'twicedaily', 'gcc_exchange_sync_cron');
             error_log('GCC Activation: Exchange sync cron scheduled - ' . ($result2 ? 'success' : 'failed'));
@@ -521,12 +525,12 @@ class GoldCalculatorChatbot
             'interval' => 300, // 5 minutes
             'display'  => 'Every 5 Minutes'
         );
-        
+
         $schedules['gcc_every_2_hours'] = array(
             'interval' => 7200, // 2 hours = 2 * 60 * 60 = 7200 seconds
             'display'  => 'Every 2 Hours'
         );
-        
+
         return $schedules;
     }
 
@@ -538,16 +542,16 @@ class GoldCalculatorChatbot
         // Check if we should run (every 1 minute)
         $last_run = get_option('gcc_last_price_sync_run', 0);
         $current_time = time();
-        
+
         // Only run if 1 minute has passed since last run
         if (($current_time - $last_run) < 60) { // 60 seconds = 1 minute
             error_log('GCC Cron Price Sync: Skipped (too recent)');
             return;
         }
-        
+
         // Update last run time
         update_option('gcc_last_price_sync_run', $current_time);
-        
+
         if (!class_exists('GCC_Database')) {
             require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
         }
@@ -571,10 +575,10 @@ class GoldCalculatorChatbot
         if (!class_exists('GCC_Database')) {
             require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
         }
-        
+
         $database = new GCC_Database();
         $result = $database->sync_exchange_rate();
-        
+
         // Log result for debugging
         if ($result['success']) {
             error_log('GCC Cron Exchange Rate Sync: ' . $result['message']);

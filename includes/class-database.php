@@ -1878,7 +1878,7 @@ class GCC_Database
 
         // Fetch data from API
         $response = wp_remote_get($api_url, array(
-            'timeout' => 30,
+            'timeout' => 120,
             'headers' => array(
                 'Accept' => 'application/json',
                 'User-Agent' => 'WordPress/GCC-Plugin'
@@ -1995,10 +1995,10 @@ class GCC_Database
     public function sync_exchange_rate()
     {
         $api_url = 'https://radoviutoku.com/zs-xml';
-        
+
         // Fetch data from API
         $response = wp_remote_get($api_url, array(
-            'timeout' => 30,
+            'timeout' => 120,
             'headers' => array(
                 'Accept' => 'application/json',
                 'User-Agent' => 'WordPress/GCC-Plugin'
@@ -2028,7 +2028,7 @@ class GCC_Database
 
         // Extract EUR/RSD rate from the nested structure
         $eur_rsd_rate = null;
-        
+
         if (isset($data['sale']['spot']['item']) && is_array($data['sale']['spot']['item'])) {
             foreach ($data['sale']['spot']['item'] as $item) {
                 if (isset($item['@attributes']['name']) && $item['@attributes']['name'] === 'EURRSD') {
@@ -2050,20 +2050,20 @@ class GCC_Database
         // Update exchange rate settings
         update_option('gcc_exchange_rate', $eur_rsd_rate);
         update_option('gcc_exchange_rate_display', 'EUR/RSD: ' . number_format($eur_rsd_rate, 2));
-        
+
         // Update sync information
         $current_time = current_time('timestamp');
         update_option('gcc_last_exchange_sync', $current_time);
         update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s', $current_time));
         update_option('gcc_last_exchange_sync_status', 'success');
-        
+
         $message = "Exchange rate updated to EUR/RSD: " . number_format($eur_rsd_rate, 2);
         update_option('gcc_last_exchange_sync_message', $message);
-        
+
         error_log('GCC Exchange Rate Sync: ' . $message);
-        
+
         return array(
-            'success' => true, 
+            'success' => true,
             'message' => $message,
             'rate' => $eur_rsd_rate
         );
