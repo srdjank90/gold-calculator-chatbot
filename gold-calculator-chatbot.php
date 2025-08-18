@@ -99,9 +99,9 @@ class GoldCalculatorChatbot
 
     public function enqueue_scripts()
     {
-        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.3.8', true);
-        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.3.9');
-        
+        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.4.0', true);
+        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.4.0');
+
         // Add custom chatbot styles
         $this->add_custom_chatbot_styles();
 
@@ -120,21 +120,22 @@ class GoldCalculatorChatbot
         ));
     }
 
-    public function add_custom_chatbot_styles() {
+    public function add_custom_chatbot_styles()
+    {
         // Get all appearance settings
         $font_family = get_option('gcc_chatbot_font_family', 'inherit');
         $header_font_family = get_option('gcc_chat_header_font_family', 'inherit');
         $container_bg = get_option('gcc_chat_container_bg_color', '#ffffff');
         $header_bg = get_option('gcc_chat_header_bg_color', '#3c2415');
         $header_text = get_option('gcc_chat_header_text_color', '#fdf7e7');
-        $ai_avatar_bg = get_option('gcc_ai_avatar_bg_color', '#3b82f6');
+        $ai_avatar_bg = get_option('gcc_ai_avatar_bg_color', '#3c2415');
         $ai_avatar_text = get_option('gcc_ai_avatar_text_color', '#ffffff');
         $ai_bubble_bg = get_option('gcc_ai_bubble_bg_color', '#fdf7e7');
         $ai_bubble_text = get_option('gcc_ai_bubble_text_color', '#3c2415');
         $ai_time_text = get_option('gcc_ai_time_text_color', '#6b7280');
         $user_avatar_bg = get_option('gcc_user_avatar_bg_color', '#10b981');
         $user_avatar_text = get_option('gcc_user_avatar_text_color', '#ffffff');
-        $user_bubble_bg = get_option('gcc_user_bubble_bg_color', '#3b82f6');
+        $user_bubble_bg = get_option('gcc_user_bubble_bg_color', '#3c2415');
         $user_bubble_text = get_option('gcc_user_bubble_text_color', '#ffffff');
         $user_time_text = get_option('gcc_user_time_text_color', '#6b7280');
 
@@ -144,74 +145,74 @@ class GoldCalculatorChatbot
         .chat-container {
             background-color: {$container_bg} !important;
         }
-        
+
         .chat-container * {
             font-family: {$font_family} !important;
         }
-        
+
         .chat-header {
             background: {$header_bg} !important;
             color: {$header_text} !important;
         }
-        
+
         .chat-header h1,
         .chat-header p {
             color: {$header_text} !important;
         }
-        
+
         .chat-header h1 {
             font-family: {$header_font_family} !important;
         }
-        
+
         .header-avatar .persona-fallback {
             background: {$ai_avatar_bg} !important;
             color: {$ai_avatar_text} !important;
         }
-        
+
         .ai-message .avatar {
             background: {$ai_avatar_bg} !important;
             color: {$ai_avatar_text} !important;
         }
-        
+
         .persona-fallback {
             background: {$ai_avatar_bg} !important;
             color: {$ai_avatar_text} !important;
         }
-        
+
         .ai-bubble {
             background: {$ai_bubble_bg} !important;
             color: {$ai_bubble_text} !important;
         }
-        
+
         .gcc-inline-option-btn {
             background: {$ai_bubble_bg} !important;
             color: {$ai_bubble_text} !important;
             border: 1px solid {$ai_bubble_text} !important;
         }
-        
+
         .gcc-inline-option-btn:hover {
             background: {$ai_bubble_text} !important;
             color: {$ai_bubble_bg} !important;
         }
-        
+
         .ai-message .message-time {
             color: {$ai_time_text} !important;
         }
-        
+
         .user-message .avatar {
             background: {$user_avatar_bg} !important;
             color: {$user_avatar_text} !important;
         }
-        
+
         .user-icon {
             color: {$user_avatar_text} !important;
         }
-        
+
         .user-bubble {
             background: {$user_bubble_bg} !important;
             color: {$user_bubble_text} !important;
         }
-        
+
         .user-message .message-time {
             color: {$user_time_text} !important;
         }
@@ -307,7 +308,7 @@ class GoldCalculatorChatbot
             persona = persona || "ZLATIJA";
             const modal = document.getElementById("gcc-chatbot-modal");
             const container = document.getElementById("gcc-modal-chatbot-container");
-            
+
             // Load chatbot content
             container.innerHTML = `
                 <div class="gcc-chatbot-wrapper">
@@ -324,33 +325,33 @@ class GoldCalculatorChatbot
                     </div>
                 </div>
             `;
-            
+
             modal.style.display = "block";
-            
+
             // Initialize chatbot if function exists
             if (typeof initChatbotInModal === "function") {
                 initChatbotInModal();
             }
         }
-        
+
         function gccCloseChatbotModal() {
             document.getElementById("gcc-chatbot-modal").style.display = "none";
         }
-        
+
         function gccOpenFullChatbot(persona) {
             persona = persona || "ZLATIJA";
-            
+
             // Check if there\'s a chatbot on the page
             const existingChatbot = document.querySelector(".gcc-chatbot-wrapper");
             if (existingChatbot) {
                 existingChatbot.scrollIntoView({ behavior: "smooth" });
                 return;
             }
-            
+
             // Try to open in modal
             gccOpenChatbotModal(persona);
         }
-        
+
         // Close modal on escape key
         document.addEventListener("keydown", function(e) {
             if (e.key === "Escape") {
@@ -423,7 +424,7 @@ class GoldCalculatorChatbot
                 $database = new GCC_Database();
                 $database->recreate_products_table();
                 $database->import_products_from_json(GCC_PLUGIN_PATH . 'products_active.json');
-                
+
                 // Create other tables (submits, personas, questions)
                 $database->create_tables();
             }
@@ -441,7 +442,7 @@ class GoldCalculatorChatbot
                 'api_update_interval' => 300,
                 'high_budget_threshold' => 30000,
                 'calendly_url' => '',
-                
+
                 // New default appearance settings
                 'chatbot_font_family' => 'inherit',
                 'chat_header_font_family' => 'inherit',

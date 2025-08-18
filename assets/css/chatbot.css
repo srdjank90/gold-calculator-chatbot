@@ -3,7 +3,7 @@
   width: 100%;
   max-width: 800px;
   height: 600px;
-  background: white;
+  background: #f6e9d1;
   border-radius: 20px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -13,8 +13,8 @@
 
 /* Header */
 .chat-header {
-  background: linear-gradient(135deg, #3c2415 0%, #2563eb 100%);
-  color: white;
+  background: #3c2415;
+  color: #fdf7e7;
   padding: 0px 10px;
   display: flex;
   align-items: center;
@@ -195,15 +195,13 @@
 }
 
 .ai-bubble {
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: #fdf7e7;
+  color: #3c2415;
 }
 
 .user-bubble {
-  background: white;
-  border: 1px solid #e5e7eb;
-  color: #374151;
+  background: #3c2415;
+  color: #ffffff;
 }
 
 .message-bubble p {
@@ -326,11 +324,11 @@
 
 .gcc-inline-option-btn {
   padding: 8px 16px;
-  background: white;
-  border: 1px solid #d1d5db;
+  background: #fdf7e7;
+  color: #3c2415;
+  border: 1px solid #3c2415;
   border-radius: 20px;
   font-size: 14px;
-  color: #374151;
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -339,7 +337,7 @@
 
 .gcc-inline-option-btn:hover {
   background: #3c2415;
-  color: white;
+  color: #fdf7e7;
   border-color: #3c2415;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px rgba(59, 130, 246, 0.2);
@@ -726,14 +724,14 @@
 
 .gcc-product-name {
   font-weight: 600;
-  color: #2c3e50;
+  color: #3c2415;
   font-size: 14px;
   flex: 1;
   min-width: 120px;
 }
 
 .gcc-product-details {
-  color: #6c757d;
+  color: #3c2415;
   font-size: 12px;
   flex: 1;
   min-width: 100px;
@@ -747,7 +745,7 @@
 }
 
 .gcc-product-quantity-display {
-  color: #6c757d;
+  color: #3c2415;
   font-size: 12px;
   min-width: 70px;
 }
@@ -860,11 +858,12 @@
 
 .gcc-cta-btn.gcc-primary {
   background: #3c2415;
-  color: white;
+  color: #fdf7e7;
 }
 
 .gcc-cta-btn.gcc-primary:hover {
-  background: #0056b3;
+  background: #fdf7e7;
+  color: #3c2415;
   transform: translateY(-2px);
 }
 
@@ -934,7 +933,7 @@
   flex: 1;
   padding: 12px 20px;
   background: #3c2415;
-  color: white;
+  color: #fdf7e7;
   border: none;
   border-radius: 5px;
   font-size: 16px;
@@ -943,7 +942,8 @@
 }
 
 .gcc-submit-btn:hover {
-  background: #0056b3;
+  background: #fdf7e7;
+  color: #3c2415;
 }
 
 .gcc-submit-btn:disabled {
