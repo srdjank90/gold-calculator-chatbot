@@ -133,6 +133,32 @@ if (!defined('ABSPATH')) {
                                 <p class="description">Email address to receive offer notifications from chatbot</p>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row">
+                                <label>Price Synchronization</label>
+                            </th>
+                            <td>
+                                <p class="description">Automatically sync product prices from API endpoint every minute.</p>
+                                <?php 
+                                $last_sync = get_option('gcc_last_sync_time', 'Never');
+                                $sync_status = get_option('gcc_last_sync_status', 'unknown');
+                                $sync_message = get_option('gcc_last_sync_message', 'No sync data available');
+                                ?>
+                                <div style="margin-bottom: 10px;">
+                                    <strong>Last Sync:</strong> <?php echo esc_html($last_sync); ?><br>
+                                    <strong>Status:</strong> 
+                                    <span style="color: <?php echo $sync_status === 'success' ? 'green' : 'red'; ?>;">
+                                        <?php echo esc_html($sync_status); ?>
+                                    </span><br>
+                                    <strong>Message:</strong> <?php echo esc_html($sync_message); ?>
+                                </div>
+                                <button type="button" id="manual-price-sync-btn" class="button button-secondary">
+                                    <span class="sync-text">🔄 Sync Prices Now</span>
+                                    <span class="sync-loading" style="display: none;">⏳ Syncing...</span>
+                                </button>
+                                <div id="sync-result" style="margin-top: 10px;"></div>
+                            </td>
+                        </tr>
                     </table>
                     <?php submit_button(); ?>
                 </form>
@@ -1939,5 +1965,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initial preview update
     setTimeout(updateChatbotPreview, 500);
+
+    // Manual price sync functionality
+    const syncButton = document.getElementById('manual-price-sync-btn');
+    if (syncButton) {
+        syncButton.addEventListener('click', function() {
+            const button = this;
+            const syncText = button.querySelector('.sync-text');
+            const syncLoading = button.querySelector('.sync-loading');
+            const resultDiv = document.getElementById('sync-result');
+            
+            // Show loading state
+            button.disabled = true;
+            syncText.style.display = 'none';
+            syncLoading.style.display = 'inline';
+            resultDiv.innerHTML = '';
+            
+            // Make AJAX request
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gcc_manual_price_sync',
+                    nonce: '<?php echo wp_create_nonce("gcc_admin_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        resultDiv.innerHTML = '<div class="notice notice-success" style="padding: 8px;"><p>' + response.data.message + '</p></div>';
+                        // Refresh the page to show updated sync info
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        resultDiv.innerHTML = '<div class="notice notice-error" style="padding: 8px;"><p>' + (response.data ? response.data.message : 'Unknown error') + '</p></div>';
+                    }
+                },
+                error: function() {
+                    resultDiv.innerHTML = '<div class="notice notice-error" style="padding: 8px;"><p>Network error occurred</p></div>';
+                },
+                complete: function() {
+                    // Reset button state
+                    button.disabled = false;
+                    syncText.style.display = 'inline';
+                    syncLoading.style.display = 'none';
+                }
+            });
+        });
+    }
 });
 </script>

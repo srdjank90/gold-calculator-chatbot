@@ -1,30 +1,33 @@
 <?php
 
-class GCC_API_Parser {
-    
+class GCC_API_Parser
+{
+
     private $api_url;
     private $update_interval; // in seconds
-    
-    public function __construct() {
-        $this->api_url = get_option('gcc_api_url', 'https://radoviutoku.com/zs-xml');
+
+    public function __construct()
+    {
+        $this->api_url = get_option('gcc_api_url', 'https://radoviutoku.com/api/prices');
         $this->update_interval = get_option('gcc_api_update_interval', 300); // 5 minutes default
-        
+
         // Schedule automatic updates
         add_action('gcc_update_products_from_api', array($this, 'update_products_from_api'));
-        
+
         if (!wp_next_scheduled('gcc_update_products_from_api')) {
             wp_schedule_event(time(), 'gcc_custom_interval', 'gcc_update_products_from_api');
         }
-        
+
         // Add custom cron intervals
         add_filter('cron_schedules', array($this, 'add_custom_cron_intervals'));
-        
+
         // Admin AJAX hooks
         add_action('wp_ajax_gcc_manual_api_update', array($this, 'manual_api_update'));
         add_action('wp_ajax_gcc_test_api_connection', array($this, 'test_api_connection'));
     }
-    
-    public function add_custom_cron_intervals($schedules) {
+
+    public function add_custom_cron_intervals($schedules)
+    {
         $schedules['gcc_1min'] = array(
             'interval' => 60,
             'display' => 'Every 1 minute'
@@ -47,49 +50,51 @@ class GCC_API_Parser {
         );
         return $schedules;
     }
-    
-    public function update_products_from_api() {
+
+    public function update_products_from_api()
+    {
         if (empty($this->api_url)) {
             error_log('GCC API Parser: No API URL configured');
             return false;
         }
-        
+
         // Check if this is the first sync and add demo products
         $is_first_sync = get_option('gcc_last_api_sync', 0) == 0;
         if ($is_first_sync) {
             $this->add_demo_products();
         }
-        
+
         $api_data = $this->fetch_api_data();
-        
+
         if ($api_data === false) {
             error_log('GCC API Parser: Failed to fetch API data');
             return false;
         }
-        
+
         $products = $this->parse_api_data($api_data);
-        
+
         if (empty($products)) {
             error_log('GCC API Parser: No products found in API response');
             return false;
         }
-        
+
         $updated_count = $this->update_database_products($products);
-        
+
         // Delete demo products after first successful sync
         if ($is_first_sync && $updated_count > 0) {
             $this->delete_demo_products();
         }
-        
+
         // Update last sync timestamp
         update_option('gcc_last_api_sync', time());
-        
+
         error_log("GCC API Parser: Updated {$updated_count} products from API");
-        
+
         return $updated_count;
     }
-    
-    private function fetch_api_data() {
+
+    private function fetch_api_data()
+    {
         $args = array(
             'timeout' => 30,
             'headers' => array(
@@ -97,73 +102,74 @@ class GCC_API_Parser {
                 'User-Agent' => 'Gold Calculator Chatbot'
             )
         );
-        
+
         // Add API key if configured
         $api_key = get_option('gcc_api_key', '');
         if (!empty($api_key)) {
             $args['headers']['Authorization'] = 'Bearer ' . $api_key;
         }
-        
+
         $response = wp_remote_get($this->api_url, $args);
-        
+
         if (is_wp_error($response)) {
             error_log('GCC API Parser Error: ' . $response->get_error_message());
             return false;
         }
-        
+
         $body = wp_remote_retrieve_body($response);
         $http_code = wp_remote_retrieve_response_code($response);
-        
+
         if ($http_code !== 200) {
             error_log('GCC API Parser: HTTP error ' . $http_code);
             return false;
         }
-        
+
         if (empty($body)) {
             error_log('GCC API Parser: Empty response body');
             return false;
         }
-        
+
         // Parse XML data
         $data = simplexml_load_string($body);
-        
+
         if ($data === false) {
             error_log('GCC API Parser: XML parse error');
             return false;
         }
-        
+
         // Convert SimpleXML to array
         $data = json_decode(json_encode($data), true);
-        
+
         return $data;
     }
-    
-    private function parse_api_data($api_data) {
+
+    private function parse_api_data($api_data)
+    {
         $products = array();
-        
+
         // Handle different XML response formats
         $product_data = $api_data;
-        
+
         // If response has a 'products' key, use that
         if (isset($api_data['products']) && is_array($api_data['products'])) {
             $product_data = $api_data['products'];
         }
-        
+
         // If response has a 'data' key, use that
         if (isset($api_data['data']) && is_array($api_data['data'])) {
             $product_data = $api_data['data'];
         }
-        
+
         // If response has items directly, use that
         if (isset($api_data['item']) && is_array($api_data['item'])) {
             $product_data = $api_data['item'];
         }
-        
+
         // Handle single item wrapped in array
         if (!isset($product_data[0]) && is_array($product_data)) {
             $product_data = array($product_data);
         }
-        
+
         foreach ($product_data as $product_node) {
             $product = array(
                 'name' => isset($product_node['name']) ? (string) $product_node['name'] : '',
@@ -188,44 +194,47 @@ class GCC_API_Parser {
                 'advance_discount_percent' => isset($product_node['advance_discount_percent']) ? (float) $product_node['advance_discount_percent'] : 3.0,
                 'is_active' => 1
             );
-            
+
             // Validate required fields
             if (!empty($product['name']) && !empty($product['weight']) && ($product['price_gross'] > 0 || $product['selling_price'] > 0)) {
                 $products[] = $product;
             }
         }
-        
+
         return $products;
     }
-    
-    private function determine_product_type($name) {
+
+    private function determine_product_type($name)
+    {
         $name_lower = strtolower($name);
-        
+
         if (strpos($name_lower, 'dukat') !== false) {
             return 'ducat';
         } elseif (strpos($name_lower, 'poluga') !== false || strpos($name_lower, 'bar') !== false) {
             return 'bar';
         }
-        
+
         // Default to bar if can't determine
         return 'bar';
     }
-    
-    private function parse_boolean($value) {
+
+    private function parse_boolean($value)
+    {
         if (is_bool($value)) {
             return $value ? 1 : 0;
         }
-        
+
         $value = strtolower(trim($value));
         return in_array($value, array('true', '1', 'yes', 'da')) ? 1 : 0;
     }
-    
-    private function update_database_products($products) {
+
+    private function update_database_products($products)
+    {
         global $wpdb;
-        
+
         $table_products = $wpdb->prefix . 'gcc_products';
         $updated_count = 0;
-        
+
         foreach ($products as $product) {
             // Check if product exists by external_id or name
             $existing_product = $wpdb->get_row($wpdb->prepare(
@@ -234,7 +243,7 @@ class GCC_API_Parser {
                 $product['name'],
                 $product['weight']
             ));
-            
+
             if ($existing_product) {
                 // Update existing product
                 $result = $wpdb->update(
@@ -246,24 +255,25 @@ class GCC_API_Parser {
                 // Insert new product
                 $result = $wpdb->insert($table_products, $product);
             }
-            
+
             if ($result !== false) {
                 $updated_count++;
             }
         }
-        
+
         return $updated_count;
     }
-    
-    public function manual_api_update() {
+
+    public function manual_api_update()
+    {
         check_ajax_referer('gcc_admin_nonce', 'nonce');
-        
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(array('message' => 'Insufficient permissions'));
         }
-        
+
         $updated_count = $this->update_products_from_api();
-        
+
         if ($updated_count !== false) {
             wp_send_json_success(array(
                 'message' => "Successfully updated {$updated_count} products",
@@ -274,37 +284,39 @@ class GCC_API_Parser {
             wp_send_json_error(array('message' => 'Failed to update products from API'));
         }
     }
-    
-    public function test_api_connection() {
+
+    public function test_api_connection()
+    {
         check_ajax_referer('gcc_admin_nonce', 'nonce');
-        
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(array('message' => 'Insufficient permissions'));
         }
-        
+
         $api_data = $this->fetch_api_data();
-        
+
         if ($api_data === false) {
             wp_send_json_error(array('message' => 'Failed to connect to API endpoint'));
         }
-        
+
         $products = $this->parse_api_data($api_data);
-        
+
         if (empty($products)) {
             wp_send_json_error(array('message' => 'Connected but no valid products found'));
         }
-        
+
         wp_send_json_success(array(
             'message' => 'Connection successful',
             'product_count' => count($products),
             'sample_products' => array_slice($products, 0, 3) // Show first 3 products as sample
         ));
     }
-    
-    public function get_api_status() {
+
+    public function get_api_status()
+    {
         $last_sync = get_option('gcc_last_api_sync', 0);
         $api_url = get_option('gcc_api_url', '');
-        
+
         return array(
             'url' => $api_url,
             'last_sync' => $last_sync,
@@ -313,24 +325,26 @@ class GCC_API_Parser {
             'status' => empty($api_url) ? 'not_configured' : ($last_sync > 0 ? 'active' : 'pending')
         );
     }
-    
-    public function force_sync_now() {
+
+    public function force_sync_now()
+    {
         // Clear scheduled event and run immediately
         wp_clear_scheduled_hook('gcc_update_products_from_api');
-        
+
         $result = $this->update_products_from_api();
-        
+
         // Get current interval setting
         $interval = get_option('gcc_api_update_interval', 300);
         $schedule = $this->get_schedule_name($interval);
-        
+
         // Reschedule with current interval
         wp_schedule_event(time() + $interval, $schedule, 'gcc_update_products_from_api');
-        
+
         return $result;
     }
-    
-    private function get_schedule_name($interval) {
+
+    private function get_schedule_name($interval)
+    {
         switch ($interval) {
             case 60:
                 return 'gcc_1min';
@@ -346,24 +360,26 @@ class GCC_API_Parser {
                 return 'gcc_5min';
         }
     }
-    
-    public function update_schedule() {
+
+    public function update_schedule()
+    {
         // Clear existing schedule
         wp_clear_scheduled_hook('gcc_update_products_from_api');
-        
+
         // Get current interval
         $interval = get_option('gcc_api_update_interval', 300);
         $schedule = $this->get_schedule_name($interval);
-        
+
         // Schedule with new interval
         wp_schedule_event(time() + $interval, $schedule, 'gcc_update_products_from_api');
     }
-    
-    private function add_demo_products() {
+
+    private function add_demo_products()
+    {
         global $wpdb;
-        
+
         $table_products = $wpdb->prefix . 'gcc_products';
-        
+
         // Demo products to add
         $demo_products = array(
             array(
@@ -435,7 +451,7 @@ class GCC_API_Parser {
                 'updated_at' => current_time('mysql')
             )
         );
-        
+
         $added_count = 0;
         foreach ($demo_products as $product) {
             // Check if demo product already exists
@@ -443,7 +459,7 @@ class GCC_API_Parser {
                 "SELECT COUNT(*) FROM $table_products WHERE external_id = %s",
                 $product['external_id']
             ));
-            
+
             if (!$exists) {
                 $result = $wpdb->insert($table_products, $product);
                 if ($result) {
@@ -451,25 +467,26 @@ class GCC_API_Parser {
                 }
             }
         }
-        
+
         if ($added_count > 0) {
             error_log("GCC API Parser: Added {$added_count} demo products");
         }
-        
+
         return $added_count;
     }
-    
-    private function delete_demo_products() {
+
+    private function delete_demo_products()
+    {
         global $wpdb;
-        
+
         $table_products = $wpdb->prefix . 'gcc_products';
-        
+
         $result = $wpdb->delete($table_products, array('is_demo' => 1));
-        
+
         if ($result) {
             error_log("GCC API Parser: Deleted {$result} demo products after first sync");
         }
-        
+
         return $result;
     }
 }

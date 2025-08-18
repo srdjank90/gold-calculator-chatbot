@@ -46,6 +46,9 @@ class GCC_Admin
         // Calendly URL handler for frontend
         add_action('wp_ajax_gcc_get_calendly_url', array($this, 'get_calendly_url'));
         add_action('wp_ajax_nopriv_gcc_get_calendly_url', array($this, 'get_calendly_url'));
+        
+        // Price sync handler for admin
+        add_action('wp_ajax_gcc_manual_price_sync', array($this, 'manual_price_sync'));
     }
 
     public function add_admin_menu()
@@ -589,6 +592,28 @@ class GCC_Admin
         wp_send_json_success(array(
             'calendly_url' => $calendly_url
         ));
+    }
+
+    public function manual_price_sync()
+    {
+        check_ajax_referer('gcc_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+
+        if (!class_exists('GCC_Database')) {
+            require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
+        }
+        
+        $database = new GCC_Database();
+        $result = $database->sync_product_prices();
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
     }
 
     public function create_product()

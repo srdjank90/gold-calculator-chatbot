@@ -5,7 +5,7 @@
             <?php if (!empty($atts['persona_image'])): ?>
                 <img src="<?php echo esc_url($atts['persona_image']); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
             <?php else: ?>
-                <div class="persona-fallback"><?php echo esc_html(substr($atts['persona'], 0, 1)); ?></div>
+                <img src="<?php echo esc_url(GCC_PLUGIN_URL . 'assets/images/ai-agent-default.webp'); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
             <?php endif; ?>
         </div>
         <div class="header-info">
@@ -22,7 +22,7 @@
                 <?php if (!empty($atts['persona_image'])): ?>
                     <img src="<?php echo esc_url($atts['persona_image']); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
                 <?php else: ?>
-                    <div class="persona-fallback"><?php echo esc_html(substr($atts['persona'], 0, 1)); ?></div>
+                    <img src="<?php echo esc_url(GCC_PLUGIN_URL . 'assets/images/ai-agent-default.webp'); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
                 <?php endif; ?>
             </div>
             <div class="message-content">

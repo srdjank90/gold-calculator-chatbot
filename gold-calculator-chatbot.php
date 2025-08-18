@@ -21,6 +21,9 @@ class GoldCalculatorChatbot
         add_action('init', array($this, 'init'));
         register_activation_hook(__FILE__, array($this, 'activate'));
         register_deactivation_hook(__FILE__, array($this, 'deactivate'));
+
+        // Hook for price sync cron job
+        add_action('gcc_price_sync_cron', array($this, 'run_price_sync'));
     }
 
     public function init()
@@ -94,6 +97,9 @@ class GoldCalculatorChatbot
     {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'add_chatbot_modal'));
+
+        // Add custom cron interval for every minute
+        add_filter('cron_schedules', array($this, 'add_cron_interval'));
     }
 
     public function enqueue_scripts()
@@ -115,7 +121,8 @@ class GoldCalculatorChatbot
             'persona_greeting' => $persona_data['greeting_message'],
             'persona_image' => $persona_data['image_url'],
             'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
-            'budget_options' => $this->get_budget_options()
+            'budget_options' => $this->get_budget_options(),
+            'plugin_url' => GCC_PLUGIN_URL
         ));
     }
 
@@ -432,7 +439,7 @@ class GoldCalculatorChatbot
                 'current_persona' => 'ZLATIJA',
                 'trader_info' => 'Za veće investicije preporučujemo direktan razgovor sa treiderom.',
                 'email_template' => 'Hvala na interesovanju za investiciono zlato. Uskoro ćemo Vam poslati detaljnu ponudu.',
-                'api_url' => 'https://radoviutoku.com/zs-xml',
+                'api_url' => 'https://radoviutoku.com/api/prices',
                 'api_key' => '',
                 'api_update_interval' => 300,
                 'high_budget_threshold' => 30000,
@@ -463,6 +470,11 @@ class GoldCalculatorChatbot
             }
 
             // Flush rewrite rules
+            // Schedule price sync cron job (every minute)
+            if (!wp_next_scheduled('gcc_price_sync_cron')) {
+                wp_schedule_event(time(), 'gcc_every_minute', 'gcc_price_sync_cron');
+            }
+
             flush_rewrite_rules();
         } catch (Exception $e) {
             error_log("Gold Calculator Chatbot activation error: " . $e->getMessage());
@@ -472,8 +484,43 @@ class GoldCalculatorChatbot
 
     public function deactivate()
     {
+        // Clean up cron job
+        wp_clear_scheduled_hook('gcc_price_sync_cron');
+
         // Clean up if needed
         flush_rewrite_rules();
+    }
+
+    /**
+     * Add custom cron interval for every minute
+     */
+    public function add_cron_interval($schedules)
+    {
+        $schedules['gcc_every_minute'] = array(
+            'interval' => 60,
+            'display'  => 'Every Minute'
+        );
+        return $schedules;
+    }
+
+    /**
+     * Run price sync from cron job
+     */
+    public function run_price_sync()
+    {
+        if (!class_exists('GCC_Database')) {
+            require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
+        }
+
+        $database = new GCC_Database();
+        $result = $database->sync_product_prices();
+
+        // Log result for debugging
+        if ($result['success']) {
+            error_log('GCC Cron Price Sync: ' . $result['message']);
+        } else {
+            error_log('GCC Cron Price Sync Failed: ' . $result['message']);
+        }
     }
 }
 

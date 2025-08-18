@@ -575,10 +575,18 @@ jQuery(document).ready(function ($) {
 
     const persona = (typeof gold_suggestions_ajax !== "undefined" && gold_suggestions_ajax.persona) || (typeof gcc_ajax !== "undefined" && gcc_ajax.persona) || "ZLATIJA"
 
-    if (personaImage) {
+    if (personaImage && personaImage.trim() !== "") {
       return `<img src="${personaImage}" alt="${persona}" class="persona-image">`
     } else {
-      return `<div class="persona-fallback">${persona.charAt(0)}</div>`
+      // Use default AI agent image from assets
+      const pluginUrl = (typeof gold_suggestions_ajax !== "undefined" && gold_suggestions_ajax.plugin_url) || (typeof gcc_ajax !== "undefined" && gcc_ajax.plugin_url) || ""
+      if (pluginUrl) {
+        const defaultImage = pluginUrl + "assets/images/ai-agent-default.webp"
+        return `<img src="${defaultImage}" alt="${persona}" class="persona-image">`
+      } else {
+        // Final fallback if no plugin URL available
+        return `<div class="persona-fallback">${persona.charAt(0)}</div>`
+      }
     }
   }
 
@@ -589,7 +597,15 @@ jQuery(document).ready(function ($) {
     if (userAvatarImage && userAvatarImage.trim() !== "") {
       return `<img src="${userAvatarImage}" alt="User" class="user-avatar-image">`
     } else {
-      return `<div class="user-icon">👤</div>`
+      // Use default user agent image from assets
+      const pluginUrl = (typeof gold_suggestions_ajax !== "undefined" && gold_suggestions_ajax.plugin_url) || (typeof gcc_ajax !== "undefined" && gcc_ajax.plugin_url) || ""
+      if (pluginUrl) {
+        const defaultImage = pluginUrl + "assets/images/user-agent-default.webp"
+        return `<img src="${defaultImage}" alt="User" class="user-avatar-image">`
+      } else {
+        // Final fallback if no plugin URL available
+        return `<div class="user-icon">👤</div>`
+      }
     }
   }
 

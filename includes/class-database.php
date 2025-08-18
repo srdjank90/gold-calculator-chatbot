@@ -1544,9 +1544,9 @@ class GCC_Database
 
         $where_sql = implode(' AND ', $where_clauses);
         $query = "SELECT * FROM $this->table_products WHERE $where_sql ORDER BY type, price ASC";
-        
+
         $products = $wpdb->get_results($query);
-        
+
         // Apply correct pricing based on delivery method and add EUR conversion
         if ($products) {
             $exchange_rate = get_option('gcc_exchange_rate', 117.5);
@@ -1614,7 +1614,7 @@ class GCC_Database
             if ($budget_eur === null) {
                 $budget_eur = $budget_rsd / $exchange_rate;
             }
-            
+
             return array(
                 'products' => array(),
                 'total_value' => 0,
@@ -1717,7 +1717,7 @@ class GCC_Database
         }
 
         $total_value_eur = $total_value_rsd / $exchange_rate;
-        
+
         return array(
             'products' => $selected_products,
             'total_value' => $total_value_rsd,
@@ -1857,6 +1857,135 @@ class GCC_Database
             'total_price' => $best_total,
             'budget_used' => $best_total,
             'budget_remaining' => $budget - $best_total
+        );
+    }
+
+    /**
+     * Synchronize product prices from external API
+     */
+    public function sync_product_prices()
+    {
+        $api_url = get_option('gcc_api_url', '');
+
+        if (empty($api_url)) {
+            $error_message = 'No API URL configured';
+            error_log('GCC Price Sync: ' . $error_message);
+            update_option('gcc_last_sync_status', 'error');
+            update_option('gcc_last_sync_message', $error_message);
+            update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
+            return array('success' => false, 'message' => $error_message);
+        }
+
+        // Fetch data from API
+        $response = wp_remote_get($api_url, array(
+            'timeout' => 30,
+            'headers' => array(
+                'Accept' => 'application/json',
+                'User-Agent' => 'WordPress/GCC-Plugin'
+            )
+        ));
+
+        if (is_wp_error($response)) {
+            $error_message = 'API request failed: ' . $response->get_error_message();
+            error_log('GCC Price Sync: ' . $error_message);
+            update_option('gcc_last_sync_status', 'error');
+            update_option('gcc_last_sync_message', $error_message);
+            update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
+            return array('success' => false, 'message' => $error_message);
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $error_message = 'Invalid JSON response from API';
+            error_log('GCC Price Sync: ' . $error_message);
+            update_option('gcc_last_sync_status', 'error');
+            update_option('gcc_last_sync_message', $error_message);
+            update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
+            return array('success' => false, 'message' => $error_message);
+        }
+
+        if (!is_array($data)) {
+            $error_message = 'Expected array response from API';
+            error_log('GCC Price Sync: ' . $error_message);
+            update_option('gcc_last_sync_status', 'error');
+            update_option('gcc_last_sync_message', $error_message);
+            update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
+            return array('success' => false, 'message' => $error_message);
+        }
+
+        global $wpdb;
+        $updated_count = 0;
+        $error_count = 0;
+
+        foreach ($data as $api_product) {
+            if (!isset($api_product['product_id']) || !isset($api_product['selling_price']) || !isset($api_product['regular_price'])) {
+                $error_count++;
+                continue;
+            }
+
+            $external_id = intval($api_product['product_id']);
+            $selling_price = floatval($api_product['selling_price']);  // API price_avans = our selling_price
+            $regular_price = floatval($api_product['regular_price']);        // API price = our regular_price
+            $purchase_price = isset($api_product['purchase_price']) ? floatval($api_product['purchase_price']) : $selling_price;
+
+            // Update product where external_id matches
+            $result = $wpdb->update(
+                $this->table_products,
+                array(
+                    'price' => $regular_price,           // API 'price' field
+                    'price_avans' => $selling_price,     // API 'price_avans' field
+                    'updated_at' => current_time('mysql')
+                ),
+                array('external_id' => $external_id),
+                array('%f', '%f', '%s'),
+                array('%d')
+            );
+
+            if ($result !== false && $result > 0) {
+                $updated_count++;
+                error_log("GCC Price Sync: Updated product external_id {$external_id} - regular_price: {$regular_price}, selling_price: {$selling_price}");
+            } elseif ($result === false) {
+                error_log("GCC Price Sync: Failed to update product external_id {$external_id}");
+                $error_count++;
+            }
+            // If $result === 0, product not found or no changes needed
+        }
+
+        // Update sync information
+        $current_time = current_time('timestamp');
+        update_option('gcc_last_price_sync', $current_time);
+        update_option('gcc_last_sync_time', date('Y-m-d H:i:s', $current_time));
+        update_option('gcc_last_sync_status', 'success');
+
+        $message = "Price sync completed. Updated: {$updated_count} products";
+        if ($error_count > 0) {
+            $message .= ", Errors: {$error_count}";
+        }
+
+        update_option('gcc_last_sync_message', $message);
+        error_log('GCC Price Sync: ' . $message);
+
+        return array(
+            'success' => true,
+            'message' => $message,
+            'updated' => $updated_count,
+            'errors' => $error_count
+        );
+    }
+
+    /**
+     * Get last price sync information
+     */
+    public function get_last_sync_info()
+    {
+        $last_sync = get_option('gcc_last_price_sync', 0);
+
+        return array(
+            'last_sync' => $last_sync,
+            'last_sync_formatted' => $last_sync ? date('Y-m-d H:i:s', $last_sync) : 'Never',
+            'time_ago' => $last_sync ? human_time_diff($last_sync, current_time('timestamp')) . ' ago' : 'Never'
         );
     }
 }

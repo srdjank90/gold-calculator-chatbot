@@ -83,7 +83,8 @@ class GCC_Shortcodes
                                     array('value' => 50000, 'text' => '€50,000+', 'level' => '20g+')
                                 ));
                                 echo json_encode($budget_buckets);
-                                ?>
+                                ?>,
+                plugin_url: '<?php echo esc_js(GCC_PLUGIN_URL); ?>'
             };
         </script>
 
