@@ -159,6 +159,33 @@ if (!defined('ABSPATH')) {
                                 <div id="sync-result" style="margin-top: 10px;"></div>
                             </td>
                         </tr>
+                        <tr>
+                            <th scope="row">
+                                <label>Exchange Rate Synchronization</label>
+                            </th>
+                            <td>
+                                <p class="description">Automatically sync EUR/RSD exchange rate from radoviutoku.com every 2 hours.</p>
+                                <?php 
+                                $last_exchange_sync = get_option('gcc_last_exchange_sync_time', 'Never');
+                                $exchange_sync_status = get_option('gcc_last_exchange_sync_status', 'unknown');
+                                $exchange_sync_message = get_option('gcc_last_exchange_sync_message', 'No sync data available');
+                                ?>
+                                <div style="margin-bottom: 10px;">
+                                    <strong>Current Rate:</strong> <?php echo esc_html(get_option('gcc_exchange_rate_display', 'EUR/RSD: 117.5')); ?><br>
+                                    <strong>Last Sync:</strong> <?php echo esc_html($last_exchange_sync); ?><br>
+                                    <strong>Status:</strong> 
+                                    <span style="color: <?php echo $exchange_sync_status === 'success' ? 'green' : 'red'; ?>;">
+                                        <?php echo esc_html($exchange_sync_status); ?>
+                                    </span><br>
+                                    <strong>Message:</strong> <?php echo esc_html($exchange_sync_message); ?>
+                                </div>
+                                <button type="button" id="manual-exchange-sync-btn" class="button button-secondary">
+                                    <span class="exchange-sync-text">💱 Sync Exchange Rate Now</span>
+                                    <span class="exchange-sync-loading" style="display: none;">⏳ Syncing...</span>
+                                </button>
+                                <div id="exchange-sync-result" style="margin-top: 10px;"></div>
+                            </td>
+                        </tr>
                     </table>
                     <?php submit_button(); ?>
                 </form>
@@ -1987,6 +2014,53 @@ document.addEventListener('DOMContentLoaded', function() {
                 type: 'POST',
                 data: {
                     action: 'gcc_manual_price_sync',
+                    nonce: '<?php echo wp_create_nonce("gcc_admin_nonce"); ?>'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        resultDiv.innerHTML = '<div class="notice notice-success" style="padding: 8px;"><p>' + response.data.message + '</p></div>';
+                        // Refresh the page to show updated sync info
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        resultDiv.innerHTML = '<div class="notice notice-error" style="padding: 8px;"><p>' + (response.data ? response.data.message : 'Unknown error') + '</p></div>';
+                    }
+                },
+                error: function() {
+                    resultDiv.innerHTML = '<div class="notice notice-error" style="padding: 8px;"><p>Network error occurred</p></div>';
+                },
+                complete: function() {
+                    // Reset button state
+                    button.disabled = false;
+                    syncText.style.display = 'inline';
+                    syncLoading.style.display = 'none';
+                }
+            });
+        });
+    }
+
+    // Manual exchange rate sync functionality
+    const exchangeSyncButton = document.getElementById('manual-exchange-sync-btn');
+    if (exchangeSyncButton) {
+        exchangeSyncButton.addEventListener('click', function() {
+            const button = this;
+            const syncText = button.querySelector('.exchange-sync-text');
+            const syncLoading = button.querySelector('.exchange-sync-loading');
+            const resultDiv = document.getElementById('exchange-sync-result');
+            
+            // Show loading state
+            button.disabled = true;
+            syncText.style.display = 'none';
+            syncLoading.style.display = 'inline';
+            resultDiv.innerHTML = '';
+            
+            // Make AJAX request
+            jQuery.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'gcc_manual_exchange_sync',
                     nonce: '<?php echo wp_create_nonce("gcc_admin_nonce"); ?>'
                 },
                 success: function(response) {

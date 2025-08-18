@@ -24,6 +24,9 @@ class GoldCalculatorChatbot
 
         // Hook for price sync cron job
         add_action('gcc_price_sync_cron', array($this, 'run_price_sync'));
+        
+        // Hook for exchange rate sync cron job
+        add_action('gcc_exchange_sync_cron', array($this, 'run_exchange_sync'));
     }
 
     public function init()
@@ -98,7 +101,7 @@ class GoldCalculatorChatbot
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'add_chatbot_modal'));
 
-        // Add custom cron interval for every minute
+        // Add custom cron intervals
         add_filter('cron_schedules', array($this, 'add_cron_interval'));
     }
 
@@ -474,6 +477,11 @@ class GoldCalculatorChatbot
             if (!wp_next_scheduled('gcc_price_sync_cron')) {
                 wp_schedule_event(time(), 'gcc_every_minute', 'gcc_price_sync_cron');
             }
+            
+            // Schedule exchange rate sync cron job (every 2 hours)
+            if (!wp_next_scheduled('gcc_exchange_sync_cron')) {
+                wp_schedule_event(time(), 'gcc_every_2_hours', 'gcc_exchange_sync_cron');
+            }
 
             flush_rewrite_rules();
         } catch (Exception $e) {
@@ -484,15 +492,16 @@ class GoldCalculatorChatbot
 
     public function deactivate()
     {
-        // Clean up cron job
+        // Clean up cron jobs
         wp_clear_scheduled_hook('gcc_price_sync_cron');
+        wp_clear_scheduled_hook('gcc_exchange_sync_cron');
 
         // Clean up if needed
         flush_rewrite_rules();
     }
 
     /**
-     * Add custom cron interval for every minute
+     * Add custom cron intervals
      */
     public function add_cron_interval($schedules)
     {
@@ -500,6 +509,12 @@ class GoldCalculatorChatbot
             'interval' => 60,
             'display'  => 'Every Minute'
         );
+        
+        $schedules['gcc_every_2_hours'] = array(
+            'interval' => 7200, // 2 hours = 2 * 60 * 60 = 7200 seconds
+            'display'  => 'Every 2 Hours'
+        );
+        
         return $schedules;
     }
 
@@ -520,6 +535,26 @@ class GoldCalculatorChatbot
             error_log('GCC Cron Price Sync: ' . $result['message']);
         } else {
             error_log('GCC Cron Price Sync Failed: ' . $result['message']);
+        }
+    }
+
+    /**
+     * Run exchange rate sync from cron job
+     */
+    public function run_exchange_sync()
+    {
+        if (!class_exists('GCC_Database')) {
+            require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
+        }
+        
+        $database = new GCC_Database();
+        $result = $database->sync_exchange_rate();
+        
+        // Log result for debugging
+        if ($result['success']) {
+            error_log('GCC Cron Exchange Rate Sync: ' . $result['message']);
+        } else {
+            error_log('GCC Cron Exchange Rate Sync Failed: ' . $result['message']);
         }
     }
 }

@@ -49,6 +49,7 @@ class GCC_Admin
         
         // Price sync handler for admin
         add_action('wp_ajax_gcc_manual_price_sync', array($this, 'manual_price_sync'));
+        add_action('wp_ajax_gcc_manual_exchange_sync', array($this, 'manual_exchange_sync'));
     }
 
     public function add_admin_menu()
@@ -608,6 +609,28 @@ class GCC_Admin
         
         $database = new GCC_Database();
         $result = $database->sync_product_prices();
+        
+        if ($result['success']) {
+            wp_send_json_success($result);
+        } else {
+            wp_send_json_error($result);
+        }
+    }
+
+    public function manual_exchange_sync()
+    {
+        check_ajax_referer('gcc_admin_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Insufficient permissions'));
+        }
+
+        if (!class_exists('GCC_Database')) {
+            require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
+        }
+        
+        $database = new GCC_Database();
+        $result = $database->sync_exchange_rate();
         
         if ($result['success']) {
             wp_send_json_success($result);
