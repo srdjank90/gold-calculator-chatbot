@@ -511,13 +511,13 @@ class GCC_Database
         // Handle combo type - get both bars and ducats
         if ($type === 'combo') {
             $where_type = "AND type IN ('bar', 'ducat')";
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND is_active = 1 $where_type ORDER BY price_gross ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' $where_type ORDER BY price ASC";
             $products = $wpdb->get_results($query);
         } else if ($type !== 'all') {
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND is_active = 1 AND type = %s ORDER BY price_gross ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND type = %s ORDER BY price ASC";
             $products = $wpdb->get_results($wpdb->prepare($query, $type));
         } else {
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND is_active = 1 ORDER BY price_gross ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' ORDER BY price ASC";
             $products = $wpdb->get_results($query);
         }
 
@@ -525,13 +525,7 @@ class GCC_Database
         $filtered_products = array();
         if ($products) {
             foreach ($products as $product) {
-                $final_price = $product->price_gross;
-
-                if ($delivery_method === 'stock') {
-                    $final_price = $product->selling_price * (1 + $product->stock_markup_percent / 100);
-                } else {
-                    $final_price = $product->selling_price * (1 - $product->advance_discount_percent / 100);
-                }
+                $final_price = $product->price;
 
                 if ($final_price <= $budget) {
                     $product->final_price = $final_price;
@@ -1235,9 +1229,9 @@ class GCC_Database
             array(
                 'question' => 'Kakav procenat zlata želite?',
                 'options' => json_encode(array(
-                    array('value' => '50', 'label' => 'Pola Pola (50% poluge, 50% dukati)'),
-                    array('value' => '33', 'label' => 'Više Dukata (33% poluge, 67% dukati)'),
-                    array('value' => '67', 'label' => 'Više Poluga (67% poluge, 33% dukati)')
+                    array('value' => '50', 'label' => 'Pola Pola'),
+                    array('value' => '33', 'label' => 'Više Dukata'),
+                    array('value' => '67', 'label' => 'Više Poluga')
                 )),
                 'attributes' => json_encode(array('combo_percentage' => true)),
                 'question_order' => 3,
@@ -1500,15 +1494,6 @@ class GCC_Database
             );
         }
 
-        // Apply final pricing based on delivery method
-        foreach ($all_products as $product) {
-            if ($delivery_method === 'stock') {
-                $product->final_price = $product->selling_price * (1 + $product->stock_markup_percent / 100);
-            } else {
-                $product->final_price = $product->selling_price * (1 - $product->advance_discount_percent / 100);
-            }
-        }
-
         // Calculate optimal combination based on product type
         if ($product_type === 'combo') {
             return $this->calculate_combo_combination($all_products, $budget, $combo_percentage);
@@ -1523,7 +1508,6 @@ class GCC_Database
 
         $where_clauses = array(
             "status = 'published'",
-            "is_active = 1"
         );
 
         // Filter by product type
@@ -1536,14 +1520,14 @@ class GCC_Database
         }
 
         // Filter by delivery method availability
-        if ($delivery_method === 'stock') {
-            $where_clauses[] = "stock_available = 1";
-        } else {
-            $where_clauses[] = "advance_payment_available = 1";
-        }
+        // if ($delivery_method === 'stock') {
+        //     $where_clauses[] = "stock_available = 1";
+        // } else {
+        //     $where_clauses[] = "advance_payment_available = 1";
+        // }
 
         $where_sql = implode(' AND ', $where_clauses);
-        $query = "SELECT * FROM $this->table_products WHERE $where_sql ORDER BY type, price_gross ASC";
+        $query = "SELECT * FROM $this->table_products WHERE $where_sql ORDER BY type, price ASC";
 
         return $wpdb->get_results($query);
     }
@@ -1601,25 +1585,34 @@ class GCC_Database
         if ($weight_preference === 'lighter') {
             // Sort by weight ascending (lighter first)
             usort($products, function ($a, $b) {
-                $weight_a = $this->extract_weight_value($a->weight);
-                $weight_b = $this->extract_weight_value($b->weight);
+                $weight_a = $a->weight;
+                $weight_b = $b->weight;
                 return $weight_a <=> $weight_b;
             });
         } elseif ($weight_preference === 'heavier') {
             // Sort by weight descending (heavier first)
             usort($products, function ($a, $b) {
-                $weight_a = $this->extract_weight_value($a->weight);
-                $weight_b = $this->extract_weight_value($b->weight);
+                $weight_a = $a->weight;
+                $weight_b = $b->weight;
                 return $weight_b <=> $weight_a;
             });
         } else {
             // Default: sort by price efficiency (price per gram)
             usort($products, function ($a, $b) {
-                $weight_a = $this->extract_weight_value($a->weight);
-                $weight_b = $this->extract_weight_value($b->weight);
+                $weight_a = isset($a->weight) ? $a->weight : 0;
+                $weight_b = isset($b->weight) ? $b->weight : 0;
 
-                $efficiency_a = $a->final_price / $weight_a;
-                $efficiency_b = $b->final_price / $weight_b;
+                // Always set final_price fallback
+                if (!isset($a->final_price)) {
+                    $a->final_price = isset($a->price) ? $a->price : 0;
+                }
+                if (!isset($b->final_price)) {
+                    $b->final_price = isset($b->price) ? $b->price : 0;
+                }
+
+                // Prevent division by zero
+                $efficiency_a = ($weight_a > 0) ? ($a->final_price / $weight_a) : PHP_FLOAT_MAX;
+                $efficiency_b = ($weight_b > 0) ? ($b->final_price / $weight_b) : PHP_FLOAT_MAX;
 
                 return $efficiency_a <=> $efficiency_b;
             });
@@ -1724,12 +1717,6 @@ class GCC_Database
             'products' => $optimized_products,
             'total_value' => $total_value
         );
-    }
-
-    private function extract_weight_value($weight_string)
-    {
-        // Extract numeric value from weight string (e.g., "10g" -> 10, "3.49g" -> 3.49)
-        return floatval(preg_replace('/[^0-9.]/', '', $weight_string));
     }
 
     private function calculate_optimal_combination($products, $budget)
