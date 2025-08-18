@@ -94,7 +94,6 @@ class GoldCalculatorChatbot
     {
         add_action('wp_enqueue_scripts', array($this, 'enqueue_scripts'));
         add_action('wp_footer', array($this, 'add_chatbot_modal'));
-        add_action('wp_ajax_gcc_recreate_products', array($this, 'recreate_products_ajax'));
     }
 
     public function enqueue_scripts()
@@ -133,7 +132,7 @@ class GoldCalculatorChatbot
         $ai_bubble_bg = get_option('gcc_ai_bubble_bg_color', '#fdf7e7');
         $ai_bubble_text = get_option('gcc_ai_bubble_text_color', '#3c2415');
         $ai_time_text = get_option('gcc_ai_time_text_color', '#6b7280');
-        $user_avatar_bg = get_option('gcc_user_avatar_bg_color', '#10b981');
+        $user_avatar_bg = get_option('gcc_user_avatar_bg_color', '#3c2415');
         $user_avatar_text = get_option('gcc_user_avatar_text_color', '#ffffff');
         $user_bubble_bg = get_option('gcc_user_bubble_bg_color', '#3c2415');
         $user_bubble_text = get_option('gcc_user_bubble_text_color', '#ffffff');
@@ -422,10 +421,6 @@ class GoldCalculatorChatbot
             // Create tables if class exists
             if (class_exists('GCC_Database')) {
                 $database = new GCC_Database();
-                $database->recreate_products_table();
-                $database->import_products_from_json(GCC_PLUGIN_PATH . 'products_active.json');
-
-                // Create other tables (submits, personas, questions)
                 $database->create_tables();
             }
 
@@ -472,23 +467,6 @@ class GoldCalculatorChatbot
         } catch (Exception $e) {
             error_log("Gold Calculator Chatbot activation error: " . $e->getMessage());
             // Don't fail activation, just log the error
-        }
-    }
-
-    public function recreate_products_ajax()
-    {
-        // Check user capabilities
-        if (!current_user_can('manage_options')) {
-            wp_die('Unauthorized');
-        }
-
-        $database = new GCC_Database();
-        $result = $database->recreate_and_import_products();
-
-        if ($result) {
-            wp_send_json_success('Products table recreated and imported successfully!');
-        } else {
-            wp_send_json_error('Failed to recreate table or import products.');
         }
     }
 

@@ -43,7 +43,7 @@ class GCC_Database
             weight int(11) NULL,
             price decimal(10,2) NOT NULL,
             price_avans decimal(10,2) NOT NULL,
-            type enum('bar', 'ducat') DEFAULT 'draft',
+            type enum('bar', 'ducat') DEFAULT 'bar',
             status enum('published', 'draft') DEFAULT 'draft',
             external_id int(11) DEFAULT NULL,
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
@@ -51,7 +51,7 @@ class GCC_Database
             PRIMARY KEY (id),
             UNIQUE KEY external_id (external_id),
             KEY slug (slug),
-            KEY status (status),
+            KEY status (status)
         ) $charset_collate;";
 
         // Submits table (formerly quotes)
@@ -872,7 +872,7 @@ class GCC_Database
             'description' => wp_kses_post($data['description']),
             'price' => floatval($data['price']),
             'price_avans' => floatval($data['price_avans']),
-            'type' => floatval($data['avans_activate']),
+            'type' => floatval($data['type']),
             'status' => sanitize_text_field($data['status']),
             'external_id' => !empty($data['external_id']) ? intval($data['external_id']) : null
         );
@@ -1812,233 +1812,5 @@ class GCC_Database
             'budget_used' => $best_total,
             'budget_remaining' => $budget - $best_total
         );
-    }
-
-    /**
-     * Import products from CSV data string
-     */
-    public function import_products_from_csv($csv_content)
-    {
-        global $wpdb;
-
-        // Parse CSV
-        $lines = explode("\n", trim($csv_content));
-        if (empty($lines)) {
-            return array('success' => false, 'message' => 'No data found in CSV');
-        }
-
-        // Get headers from first line
-        $headers = str_getcsv(array_shift($lines));
-
-        $imported_count = 0;
-        $updated_count = 0;
-        $errors = array();
-
-        foreach ($lines as $line_number => $line) {
-            if (empty(trim($line))) continue;
-
-            $data = str_getcsv($line);
-            if (count($data) !== count($headers)) {
-                $errors[] = "Line " . ($line_number + 2) . ": Column count mismatch";
-                continue;
-            }
-
-            // Create associative array with headers
-            $product_data = array_combine($headers, $data);
-
-            // Skip if essential data is missing
-            if (empty($product_data['name']) || empty($product_data['external_id'])) {
-                continue;
-            }
-
-            // Map CSV data to database structure
-            $mapped_data = $this->map_csv_to_database($product_data);
-
-            // Check if product already exists by article_number
-            $existing = $wpdb->get_var($wpdb->prepare(
-                "SELECT id FROM {$this->table_products} WHERE article_number = %s",
-                $mapped_data['article_number']
-            ));
-
-            if ($existing) {
-                // Update existing product
-                $result = $wpdb->update(
-                    $this->table_products,
-                    $mapped_data,
-                    array('id' => $existing)
-                );
-                if ($result !== false) {
-                    $updated_count++;
-                }
-            } else {
-                // Insert new product
-                $result = $wpdb->insert($this->table_products, $mapped_data);
-                if ($result) {
-                    $imported_count++;
-                }
-            }
-
-            if ($result === false) {
-                $errors[] = "Failed to process: " . $product_data['name'];
-            }
-        }
-
-        return array(
-            'success' => true,
-            'imported' => $imported_count,
-            'updated' => $updated_count,
-            'errors' => $errors
-        );
-    }
-
-    /**
-     * Map CSV fields to database fields
-     */
-    private function map_csv_to_database($csv_data)
-    {
-        // Determine product type from name
-        $name = strtolower($csv_data['name']);
-        $type = 'bar'; // default
-
-        if (
-            strpos($name, 'dukat') !== false || strpos($name, 'britannia') !== false ||
-            strpos($name, 'philharmoniker') !== false || strpos($name, 'franc jozef') !== false
-        ) {
-            $type = 'ducat';
-        }
-
-        // Extract weight from name
-        $weight = $this->extract_weight_from_name($csv_data['name']);
-
-        // Clean description HTML
-        $description = strip_tags($csv_data['description']);
-        if (strlen($description) > 1000) {
-            $description = substr($description, 0, 997) . '...';
-        }
-
-        return array(
-            'name' => sanitize_text_field($csv_data['name']),
-            'description' => sanitize_textarea_field($description),
-            'article_number' => sanitize_text_field($csv_data['external_id']),
-            'type' => $type,
-            'weight' => $weight,
-            'price_net' => floatval($csv_data['price_avans'] ?: $csv_data['price']),
-            'price_gross' => floatval($csv_data['price']),
-            'buying_price' => floatval($csv_data['price_avans'] ?: $csv_data['price']),
-            'selling_price' => floatval($csv_data['price']),
-            'status' => ($csv_data['status'] === 'published') ? 'published' : 'draft',
-            'stock_available' => intval($csv_data['avans_activate'] ?: 1),
-            'advance_payment_available' => intval($csv_data['avans_activate'] ?: 1),
-            'stock_markup_percent' => 4.0,
-            'advance_discount_percent' => 3.0,
-            'is_active' => 1,
-            'is_demo' => 0
-        );
-    }
-
-    /**
-     * Extract weight from product name
-     */
-    private function extract_weight_from_name($name)
-    {
-        // Look for patterns like 1g, 20g, 1oz, 1kg, etc.
-        if (preg_match('/(\d+(?:\.\d+)?)(g|oz|kg)\b/i', $name, $matches)) {
-            $number = $matches[1];
-            $unit = strtolower($matches[2]);
-
-            // Convert to grams if needed
-            switch ($unit) {
-                case 'kg':
-                    return ($number * 1000) . 'g';
-                case 'oz':
-                    return ($number * 31.1) . 'g';
-                default:
-                    return $number . $unit;
-            }
-        }
-
-        // Look for patterns like 25x1g, 10x2g
-        if (preg_match('/(\d+)x(\d+(?:\.\d+)?)(g|oz|kg)\b/i', $name, $matches)) {
-            $quantity = $matches[1];
-            $weight = $matches[2];
-            $unit = strtolower($matches[3]);
-
-            // Convert to grams if needed
-            switch ($unit) {
-                case 'kg':
-                    $total_weight = ($quantity * $weight * 1000);
-                    break;
-                case 'oz':
-                    $total_weight = ($quantity * $weight * 31.1);
-                    break;
-                default:
-                    $total_weight = ($quantity * $weight);
-                    break;
-            }
-            return $total_weight . 'g';
-        }
-
-        return '1g'; // default fallback
-    }
-
-    /**
-     * Method to refresh default products (can be called manually)
-     * This will replace old demo products with the new CSV products
-     */
-    public function refresh_default_products()
-    {
-        global $wpdb;
-
-        // Remove old demo/sample products
-        $wpdb->query("DELETE FROM {$this->table_products} WHERE is_demo = 1");
-
-        // Insert new default products
-        $this->insert_sample_products();
-
-        return true;
-    }
-
-    /**
-     * Drop and recreate products table with new structure
-     */
-    public function recreate_products_table()
-    {
-        global $wpdb;
-
-        // Drop existing table
-        $wpdb->query("DROP TABLE IF EXISTS $this->table_products");
-
-        // Recreate table with new structure
-        $charset_collate = $wpdb->get_charset_collate();
-
-        $sql_products = "CREATE TABLE $this->table_products (
-            id int(11) NOT NULL AUTO_INCREMENT,
-            name varchar(255) NOT NULL,
-            slug varchar(255) NOT NULL,
-            description text,
-            price decimal(10,2) NOT NULL,
-            price_avans decimal(10,2) NOT NULL,
-            avans_activate tinyint(1) DEFAULT 0,
-            status enum('published', 'draft') DEFAULT 'draft',
-            user_id int(11) DEFAULT 1,
-            highlighted tinyint(1) DEFAULT 0,
-            expire_at datetime DEFAULT NULL,
-            published_at datetime DEFAULT NULL,
-            external_id int(11) DEFAULT NULL,
-            deleted_at datetime DEFAULT NULL,
-            created_at datetime DEFAULT CURRENT_TIMESTAMP,
-            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id),
-            UNIQUE KEY external_id (external_id),
-            KEY slug (slug),
-            KEY status (status),
-            KEY user_id (user_id),
-            KEY highlighted (highlighted)
-        ) $charset_collate;";
-
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql_products);
-
-        return true;
     }
 }

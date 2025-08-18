@@ -42,7 +42,6 @@
                         <th>External ID</th>
                         <th>Price</th>
                         <th>Price Avans</th>
-                        <th>Avans Active</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
@@ -54,9 +53,8 @@
                             <td><?php echo esc_html($product->name); ?></td>
                             <td><?php echo esc_html($product->slug); ?></td>
                             <td><?php echo esc_html($product->external_id); ?></td>
-                            <td>€<?php echo number_format($product->price, 2); ?></td>
-                            <td>€<?php echo number_format($product->price_avans, 2); ?></td>
-                            <td><?php echo $product->avans_activate ? 'Yes' : 'No'; ?></td>
+                            <td><?php echo number_format($product->price, 2); ?> RSD</td>
+                            <td><?php echo number_format($product->price_avans, 2); ?> RSD</td>
                             <td>
                                 <span class="gcc-status-badge gcc-status-<?php echo $product->status; ?>">
                                     <?php echo ucfirst($product->status); ?>
@@ -367,13 +365,9 @@
                         $('#product-name').val(product.name);
                         $('#product-slug').val(product.slug);
                         $('#product-external-id').val(product.external_id);
-                        $('#product-user-id').val(product.user_id);
                         $('#product-price').val(product.price);
                         $('#product-price-avans').val(product.price_avans);
-                        $('#product-avans-activate').val(product.avans_activate);
-                        $('#product-highlighted').val(product.highlighted);
                         $('#product-status').val(product.status);
-                        $('#product-currency').val(product.currency);
                         $('#product-description').val(product.description);
                         $('#gcc-product-modal').show();
                     } else {

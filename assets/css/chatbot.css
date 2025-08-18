@@ -142,7 +142,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #3c2415 0%, #2563eb 100%);
+  background: linear-gradient(135deg, #3c2415 0%, #3c2415 100%);
   color: white;
   font-weight: bold;
   font-size: 14px;
@@ -150,12 +150,10 @@
 }
 
 .ai-message .avatar {
-  background: linear-gradient(135deg, #3c2415 0%, #2563eb 100%);
   color: white;
 }
 
 .user-message .avatar {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
 }
 
