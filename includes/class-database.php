@@ -508,6 +508,10 @@ class GCC_Database
     {
         global $wpdb;
 
+        // Convert EUR budget to RSD for comparison with product prices
+        $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+        $budget_rsd = $budget * $exchange_rate;
+
         // Handle combo type - get both bars and ducats
         if ($type === 'combo') {
             $where_type = "AND type IN ('bar', 'ducat')";
@@ -525,10 +529,17 @@ class GCC_Database
         $filtered_products = array();
         if ($products) {
             foreach ($products as $product) {
-                $final_price = $product->price;
+                // Choose correct price based on delivery method (price is in RSD)
+                if ($delivery_method === 'advance') {
+                    $final_price_rsd = $product->price_avans;
+                } else {
+                    $final_price_rsd = $product->price;
+                }
 
-                if ($final_price <= $budget) {
-                    $product->final_price = $final_price;
+                // Compare RSD price with RSD budget
+                if ($final_price_rsd <= $budget_rsd) {
+                    $product->final_price = $final_price_rsd;
+                    $product->final_price_eur = $final_price_rsd / $exchange_rate; // For display purposes
                     $filtered_products[] = $product;
                 }
             }
@@ -1482,6 +1493,10 @@ class GCC_Database
     {
         global $wpdb;
 
+        // Convert EUR budget to RSD for calculations
+        $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+        $budget_rsd = $budget * $exchange_rate;
+
         // Get all available products
         $all_products = $this->get_all_available_products($product_type, $delivery_method);
 
@@ -1489,16 +1504,17 @@ class GCC_Database
             return array(
                 'products' => array(),
                 'total_value' => 0,
+                'total_value_eur' => 0,
                 'budget_used' => 0,
                 'budget_remaining' => $budget
             );
         }
 
-        // Calculate optimal combination based on product type
+        // Calculate optimal combination based on product type (pass RSD budget)
         if ($product_type === 'combo') {
-            return $this->calculate_combo_combination($all_products, $budget, $combo_percentage);
+            return $this->calculate_combo_combination($all_products, $budget_rsd, $combo_percentage, $budget, $exchange_rate);
         } else {
-            return $this->calculate_single_type_combination($all_products, $budget, $product_type, $weight_preference);
+            return $this->calculate_single_type_combination($all_products, $budget_rsd, $product_type, $weight_preference, $budget, $exchange_rate);
         }
     }
 
@@ -1528,15 +1544,30 @@ class GCC_Database
 
         $where_sql = implode(' AND ', $where_clauses);
         $query = "SELECT * FROM $this->table_products WHERE $where_sql ORDER BY type, price ASC";
+        
+        $products = $wpdb->get_results($query);
+        
+        // Apply correct pricing based on delivery method and add EUR conversion
+        if ($products) {
+            $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+            foreach ($products as $product) {
+                if ($delivery_method === 'advance') {
+                    $product->final_price = $product->price_avans; // RSD
+                } else {
+                    $product->final_price = $product->price; // RSD
+                }
+                $product->final_price_eur = $product->final_price / $exchange_rate; // For display
+            }
+        }
 
-        return $wpdb->get_results($query);
+        return $products;
     }
 
-    private function calculate_combo_combination($products, $budget, $combo_percentage)
+    private function calculate_combo_combination($products, $budget_rsd, $combo_percentage, $budget_eur, $exchange_rate)
     {
-        // Split budget according to percentage
-        $bars_budget = $budget * ($combo_percentage / 100);
-        $ducats_budget = $budget * ((100 - $combo_percentage) / 100);
+        // Split RSD budget according to percentage
+        $bars_budget_rsd = $budget_rsd * ($combo_percentage / 100);
+        $ducats_budget_rsd = $budget_rsd * ((100 - $combo_percentage) / 100);
 
         // Separate products by type
         $bars = array_filter($products, function ($p) {
@@ -1546,38 +1577,50 @@ class GCC_Database
             return $p->type === 'ducat';
         });
 
-        // Calculate optimal combination for each type
-        $bars_result = $this->calculate_single_type_combination($bars, $bars_budget, 'bars', '');
-        $ducats_result = $this->calculate_single_type_combination($ducats, $ducats_budget, 'ducats', '');
+        // Calculate optimal combination for each type (using RSD budgets)
+        $bars_result = $this->calculate_single_type_combination($bars, $bars_budget_rsd, 'bars', '', $budget_eur * ($combo_percentage / 100), $exchange_rate);
+        $ducats_result = $this->calculate_single_type_combination($ducats, $ducats_budget_rsd, 'ducats', '', $budget_eur * ((100 - $combo_percentage) / 100), $exchange_rate);
 
         // Combine results
         $combined_products = array_merge($bars_result['products'], $ducats_result['products']);
-        $total_value = $bars_result['total_value'] + $ducats_result['total_value'];
+        $total_value_rsd = $bars_result['total_value'] + $ducats_result['total_value'];
+        $total_value_eur = $total_value_rsd / $exchange_rate;
 
         // If we have remaining budget, try to optimize further
-        $remaining_budget = $budget - $total_value;
-        if ($remaining_budget > 0) {
-            $optimized_result = $this->optimize_remaining_budget($combined_products, $products, $remaining_budget);
+        $remaining_budget_rsd = $budget_rsd - $total_value_rsd;
+        if ($remaining_budget_rsd > 0) {
+            $optimized_result = $this->optimize_remaining_budget($combined_products, $products, $remaining_budget_rsd, $exchange_rate);
             $combined_products = $optimized_result['products'];
-            $total_value = $optimized_result['total_value'];
+            $total_value_rsd = $optimized_result['total_value'];
+            $total_value_eur = $total_value_rsd / $exchange_rate;
         }
 
         return array(
             'products' => $combined_products,
-            'total_value' => $total_value,
-            'budget_used' => $total_value,
-            'budget_remaining' => $budget - $total_value
+            'total_value' => $total_value_rsd,
+            'total_value_eur' => $total_value_eur,
+            'budget_used' => $total_value_eur,
+            'budget_remaining' => $budget_eur - $total_value_eur
         );
     }
 
-    private function calculate_single_type_combination($products, $budget, $product_type, $weight_preference)
+    private function calculate_single_type_combination($products, $budget_rsd, $product_type, $weight_preference, $budget_eur = null, $exchange_rate = null)
     {
         if (empty($products)) {
+            // Set defaults for exchange rate if not provided
+            if ($exchange_rate === null) {
+                $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+            }
+            if ($budget_eur === null) {
+                $budget_eur = $budget_rsd / $exchange_rate;
+            }
+            
             return array(
                 'products' => array(),
                 'total_value' => 0,
+                'total_value_eur' => 0,
                 'budget_used' => 0,
-                'budget_remaining' => $budget
+                'budget_remaining' => $budget_eur
             );
         }
 
@@ -1618,29 +1661,37 @@ class GCC_Database
             });
         }
 
-        // Use greedy algorithm to fill budget optimally
+        // Set defaults for exchange rate if not provided
+        if ($exchange_rate === null) {
+            $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+        }
+        if ($budget_eur === null) {
+            $budget_eur = $budget_rsd / $exchange_rate;
+        }
+
+        // Use greedy algorithm to fill budget optimally (all calculations in RSD)
         $selected_products = array();
-        $total_value = 0;
-        $target_budget = $budget * 0.98; // Target 98% of budget
+        $total_value_rsd = 0;
+        $target_budget_rsd = $budget_rsd * 0.98; // Target 98% of budget
 
         foreach ($products as $product) {
-            $remaining_budget = $budget - $total_value;
+            $remaining_budget_rsd = $budget_rsd - $total_value_rsd;
 
             // Skip if product is too expensive
-            if ($product->final_price > $remaining_budget) {
+            if ($product->final_price > $remaining_budget_rsd) {
                 continue;
             }
 
             // Calculate how many of this product we can afford
-            $max_quantity = floor($remaining_budget / $product->final_price);
+            $max_quantity = floor($remaining_budget_rsd / $product->final_price);
 
             if ($max_quantity > 0) {
                 // Check if adding this product gets us closer to target
                 $product_total = $max_quantity * $product->final_price;
 
                 // If we're close to target, try to optimize quantity
-                if ($total_value + $product_total > $target_budget) {
-                    $optimal_quantity = floor(($target_budget - $total_value) / $product->final_price);
+                if ($total_value_rsd + $product_total > $target_budget_rsd) {
+                    $optimal_quantity = floor(($target_budget_rsd - $total_value_rsd) / $product->final_price);
                     if ($optimal_quantity > 0) {
                         $max_quantity = $optimal_quantity;
                         $product_total = $max_quantity * $product->final_price;
@@ -1654,32 +1705,37 @@ class GCC_Database
                         'type' => $product->type,
                         'weight' => $product->weight,
                         'final_price' => $product->final_price,
+                        'final_price_eur' => $product->final_price / $exchange_rate,
                         'quantity' => $max_quantity,
-                        'total_price' => $product_total
+                        'total_price' => $product_total,
+                        'total_price_eur' => $product_total / $exchange_rate
                     );
 
-                    $total_value += $product_total;
+                    $total_value_rsd += $product_total;
                 }
             }
         }
 
+        $total_value_eur = $total_value_rsd / $exchange_rate;
+        
         return array(
             'products' => $selected_products,
-            'total_value' => $total_value,
-            'budget_used' => $total_value,
-            'budget_remaining' => $budget - $total_value
+            'total_value' => $total_value_rsd,
+            'total_value_eur' => $total_value_eur,
+            'budget_used' => $total_value_eur,
+            'budget_remaining' => $budget_eur - $total_value_eur
         );
     }
 
-    private function optimize_remaining_budget($current_products, $all_products, $remaining_budget)
+    private function optimize_remaining_budget($current_products, $all_products, $remaining_budget_rsd, $exchange_rate)
     {
         $optimized_products = $current_products;
         $total_value = array_sum(array_column($current_products, 'total_price'));
 
         // Try to add more products within remaining budget
         foreach ($all_products as $product) {
-            if ($product->final_price <= $remaining_budget) {
-                $quantity = floor($remaining_budget / $product->final_price);
+            if ($product->final_price <= $remaining_budget_rsd) {
+                $quantity = floor($remaining_budget_rsd / $product->final_price);
 
                 if ($quantity > 0) {
                     // Check if product already exists in selection
@@ -1688,6 +1744,7 @@ class GCC_Database
                         if ($selected['id'] == $product->id) {
                             $selected['quantity'] += $quantity;
                             $selected['total_price'] += $quantity * $product->final_price;
+                            $selected['total_price_eur'] += $quantity * ($product->final_price / $exchange_rate);
                             $found = true;
                             break;
                         }
@@ -1700,15 +1757,17 @@ class GCC_Database
                             'type' => $product->type,
                             'weight' => $product->weight,
                             'final_price' => $product->final_price,
+                            'final_price_eur' => $product->final_price / $exchange_rate,
                             'quantity' => $quantity,
-                            'total_price' => $quantity * $product->final_price
+                            'total_price' => $quantity * $product->final_price,
+                            'total_price_eur' => $quantity * ($product->final_price / $exchange_rate)
                         );
                     }
 
                     $total_value += $quantity * $product->final_price;
-                    $remaining_budget -= $quantity * $product->final_price;
+                    $remaining_budget_rsd -= $quantity * $product->final_price;
 
-                    if ($remaining_budget < 50) break; // Stop if less than 50 EUR remaining
+                    if ($remaining_budget_rsd < (50 * $exchange_rate)) break; // Stop if less than 50 EUR remaining
                 }
             }
         }

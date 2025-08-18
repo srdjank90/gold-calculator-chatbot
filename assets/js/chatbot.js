@@ -238,9 +238,9 @@ jQuery(document).ready(function ($) {
   function calculateTotal() {
     chatbotState.totalValue = chatbotState.selectedProducts.reduce((sum, product) => {
       if (product.total_price) {
-        return sum + parseFloat(product.total_price)
+        return sum + parseFloat(product.total_price_eur || product.total_price)
       }
-      return sum + parseFloat(product.final_price) * (product.quantity || 1)
+      return sum + parseFloat(product.final_price_eur || product.final_price) * (product.quantity || 1)
     }, 0)
   }
 
@@ -264,8 +264,8 @@ jQuery(document).ready(function ($) {
 
     chatbotState.selectedProducts.forEach((product) => {
       const quantity = product.quantity || 1
-      const unitPrice = parseFloat(product.final_price)
-      const totalPrice = product.total_price ? parseFloat(product.total_price) : unitPrice * quantity
+      const unitPrice = parseFloat(product.final_price_eur || product.final_price)
+      const totalPrice = product.total_price_eur ? parseFloat(product.total_price_eur) : (product.total_price ? parseFloat(product.total_price) : unitPrice * quantity)
 
       productListHtml += `
                 <div class="gcc-product-item-compact" data-product-id="${product.id}">
@@ -486,9 +486,40 @@ jQuery(document).ready(function ($) {
 
   // Handle schedule meeting
   function handleScheduleMeeting() {
-    // This would integrate with Calendly or similar service
+    // Get Calendly URL from WordPress settings
     addBotMessage("Uskoro ćete biti preusmereni na kalendar za zakazivanje sastanka.")
-    // window.open('https://calendly.com/your-link', '_blank');
+    
+    // Fetch Calendly URL from backend
+    $.ajax({
+      url: (typeof gcc_ajax !== "undefined" && gcc_ajax.ajax_url) || "/wp-admin/admin-ajax.php",
+      type: "POST",
+      data: {
+        action: "gcc_get_calendly_url",
+        nonce: (typeof gcc_ajax !== "undefined" && gcc_ajax.nonce) || ""
+      },
+      dataType: "json",
+      success: function (response) {
+        if (response.success && response.data.calendly_url && response.data.calendly_url.trim() !== '') {
+          // Open Calendly link in new tab
+          setTimeout(() => {
+            const calendlyUrl = response.data.calendly_url.trim();
+            console.log('Opening Calendly URL:', calendlyUrl); // Debug log
+            window.open(calendlyUrl, '_blank', 'width=800,height=600');
+          }, 1000);
+        } else {
+          // Fallback message if no Calendly URL is configured
+          setTimeout(() => {
+            addBotMessage("Molimo kontaktirajte nas direktno za zakazivanje sastanka.");
+          }, 1000);
+        }
+      },
+      error: function () {
+        // Fallback on error
+        setTimeout(() => {
+          addBotMessage("Molimo kontaktirajte nas direktno za zakazivanje sastanka.");
+        }, 1000);
+      }
+    });
   }
 
   // Add bot message

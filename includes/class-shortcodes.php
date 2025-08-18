@@ -284,7 +284,7 @@ class GCC_Shortcodes
                         <div class="gcc-product-info">
                             <h5>${product.name}</h5>
                             <p class="gcc-product-type">${typeText} - ${product.weight}</p>
-                            <p class="gcc-product-price">€${parseFloat(product.final_price).toFixed(2)}</p>
+                            <p class="gcc-product-price">€${parseFloat(product.final_price_eur || product.final_price).toFixed(2)}</p>
                             <p class="gcc-product-description">${product.description || 'Kvalitetno investiciono zlato'}</p>
                         </div>
                         <div class="gcc-product-actions">
@@ -326,7 +326,7 @@ class GCC_Shortcodes
                 };
 
                 // Add user message
-                gccAddMessage(chatId, `Potvrđujem: ${product.name} - €${parseFloat(product.final_price).toFixed(2)}`, true);
+                gccAddMessage(chatId, `Potvrđujem: ${product.name} - €${parseFloat(product.final_price_eur || product.final_price).toFixed(2)}`, true);
 
                 setTimeout(() => {
                     gccAddMessage(chatId, 'Odlično! Da biste finalizovali narudžbu, molimo unesite vaše podatke:');

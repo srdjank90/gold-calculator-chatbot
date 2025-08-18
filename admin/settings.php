@@ -9,9 +9,15 @@ if (!defined('ABSPATH')) {
     <h1>Gold Calculator Settings</h1>
     
     <?php if (isset($_GET['settings-updated'])): ?>
-        <div class="notice notice-success is-dismissible">
-            <p>Settings saved successfully!</p>
-        </div>
+        <?php if ($_GET['settings-updated'] === 'true'): ?>
+            <div class="notice notice-success is-dismissible">
+                <p>Settings saved successfully!</p>
+            </div>
+        <?php elseif ($_GET['settings-updated'] === 'false'): ?>
+            <div class="notice notice-error is-dismissible">
+                <p>There was an error saving settings. Please check the error logs.</p>
+            </div>
+        <?php endif; ?>
     <?php endif; ?>
     
     <h2 class="nav-tab-wrapper">
@@ -41,8 +47,10 @@ if (!defined('ABSPATH')) {
         <?php if ($current_tab === 'general'): ?>
             <div class="general-settings-tab">
                 <h3>General Settings</h3>
-                <form method="post" action="">
+                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                    <input type="hidden" name="action" value="gcc_save_settings">
                     <?php wp_nonce_field('gcc_settings'); ?>
+                    <input type="hidden" name="current_tab" value="general">
                     <table class="form-table">
                         <tr>
                             <th scope="row">
@@ -133,8 +141,10 @@ if (!defined('ABSPATH')) {
         <?php elseif ($current_tab === 'chatbot'): ?>
             <div class="chatbot-settings-tab">
                 <h3>Chatbot Settings</h3>
-                <form method="post" action="">
-                    <?php wp_nonce_field('gcc_chatbot_settings'); ?>
+                <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                    <input type="hidden" name="action" value="gcc_save_chatbot_settings">
+                    <?php wp_nonce_field('gcc_settings'); ?>
+                    <input type="hidden" name="current_tab" value="chatbot">
                     <table class="form-table">
                         <tr>
                             <th scope="row">
@@ -207,7 +217,7 @@ if (!defined('ABSPATH')) {
                                 <label for="calendly_url">Calendly URL</label>
                             </th>
                             <td>
-                                <input type="url" 
+                                <input type="text" 
                                        id="calendly_url" 
                                        name="calendly_url" 
                                        value="<?php echo esc_attr($data['calendly_url']); ?>" 

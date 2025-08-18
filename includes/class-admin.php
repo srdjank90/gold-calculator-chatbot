@@ -37,7 +37,15 @@ class GCC_Admin
         add_action('wp_ajax_gcc_delete_question', array($this, 'delete_question'));
         add_action('wp_ajax_gcc_toggle_question_active', array($this, 'toggle_question_active'));
         add_action('wp_ajax_gcc_update_question_order', array($this, 'update_question_order'));
+
+        // Settings form handlers using admin_post
+        add_action('admin_post_gcc_save_settings', array($this, 'handle_settings_save'));
+        add_action('admin_post_gcc_save_chatbot_settings', array($this, 'handle_settings_save'));
         add_action('wp_ajax_gcc_refresh_default_questions', array($this, 'refresh_default_questions'));
+        
+        // Calendly URL handler for frontend
+        add_action('wp_ajax_gcc_get_calendly_url', array($this, 'get_calendly_url'));
+        add_action('wp_ajax_nopriv_gcc_get_calendly_url', array($this, 'get_calendly_url'));
     }
 
     public function add_admin_menu()
@@ -159,26 +167,8 @@ class GCC_Admin
         // Get current tab
         $current_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'general';
 
-        // Handle form submissions
-        if (isset($_POST['submit']) && !wp_doing_ajax()) {
-            switch ($current_tab) {
-                case 'general':
-                    $this->save_settings();
-                    return; // Should not reach here due to exit in save method
-                case 'chatbot':
-                    $this->save_chatbot_settings();
-                    return; // Should not reach here due to exit in save method
-                case 'chat_persons':
-                    $this->save_persona_settings();
-                    return;
-                case 'chat_questions':
-                    $this->save_question_settings();
-                    return;
-                case 'cache':
-                    $this->save_cache_settings();
-                    return;
-            }
-        }
+        // Form submissions now handled by admin_post hooks to prevent header issues
+        // Old form submission handling removed to use proper WordPress admin_post mechanism
 
         // Get data for current tab
         $data = array();
@@ -358,7 +348,7 @@ class GCC_Admin
                 'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info'] ?? ''),
                 'gcc_email_template' => wp_kses_post($_POST['email_template'] ?? ''),
                 'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold'] ?? 30000),
-                'gcc_calendly_url' => esc_url_raw($_POST['calendly_url'] ?? ''),
+                'gcc_calendly_url' => $this->sanitize_calendly_url($_POST['calendly_url'] ?? ''),
                 'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
 
                 // Chatbot appearance settings
@@ -463,43 +453,56 @@ class GCC_Admin
     }
 
 
-    public function save_settings()
+    public function handle_settings_save()
     {
-        // Start output buffering early to catch any output
-        if (!ob_get_level()) {
-            ob_start();
-        }
+        error_log('GCC: handle_settings_save() called');
 
-        // Verify nonce for regular form submission
+        // Verify nonce for form submission
         if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_settings')) {
+            error_log('GCC: Nonce verification failed');
             wp_die('Security check failed');
         }
 
         if (!current_user_can('manage_options')) {
+            error_log('GCC: Insufficient permissions');
             wp_die('Insufficient permissions');
         }
 
+        $success = false;
         try {
             $this->process_settings_save();
+            $success = true;
+            error_log('GCC: Settings saved successfully');
         } catch (Exception $e) {
             error_log('GCC Settings Save Error: ' . $e->getMessage());
         }
 
-        // Clear all output buffers
-        while (ob_get_level()) {
-            ob_end_clean();
-        }
+        // Get the current tab if available
+        $current_tab = isset($_POST['current_tab']) ? sanitize_text_field($_POST['current_tab']) : 'general';
 
-        $redirect_url = admin_url('admin.php?page=gcc-settings&tab=general&settings-updated=true');
+        $redirect_url = admin_url('admin.php?page=gcc-settings&tab=' . $current_tab . '&settings-updated=' . ($success ? 'true' : 'false'));
 
-        // More robust redirect
+        error_log('GCC: Redirecting to: ' . $redirect_url);
+
+        // Use WordPress's safe redirect with fallback for headers already sent
         if (!headers_sent()) {
-            wp_redirect($redirect_url);
+            wp_safe_redirect($redirect_url);
             exit();
         } else {
-            echo '<script>window.location.href = "' . esc_js($redirect_url) . '";</script>';
+            // Fallback: JavaScript redirect if headers already sent
+            error_log('GCC: Headers already sent, using JavaScript redirect');
+            echo '<script type="text/javascript">window.location.href = "' . esc_js($redirect_url) . '";</script>';
+            echo '<noscript><meta http-equiv="refresh" content="0; url=' . esc_attr($redirect_url) . '"></noscript>';
+            echo '<p>Redirecting... <a href="' . esc_url($redirect_url) . '">Click here if you are not redirected automatically</a></p>';
             exit();
         }
+    }
+
+    // Keep the old method for backward compatibility but deprecate it
+    public function save_settings()
+    {
+        // Redirect to new handler
+        $this->handle_settings_save();
     }
 
     public function save_settings_ajax()
@@ -516,38 +519,76 @@ class GCC_Admin
 
     private function process_settings_save()
     {
-        // Handle personas array
-        $personas = array();
-        if (isset($_POST['bot_personas']) && is_array($_POST['bot_personas'])) {
-            $personas = array_map('sanitize_text_field', $_POST['bot_personas']);
-        } elseif (isset($_POST['bot_personas']) && is_string($_POST['bot_personas'])) {
-            $personas = array_map('trim', explode("\n", $_POST['bot_personas']));
-            $personas = array_filter(array_map('sanitize_text_field', $personas));
-        }
+        // Add error logging for debugging
+        error_log('GCC: Starting settings save process');
 
-        if (empty($personas)) {
-            $personas = array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA');
-        }
+        try {
+            // Handle personas array
+            $personas = array();
+            if (isset($_POST['bot_personas']) && is_array($_POST['bot_personas'])) {
+                $personas = array_map('sanitize_text_field', $_POST['bot_personas']);
+            } elseif (isset($_POST['bot_personas']) && is_string($_POST['bot_personas'])) {
+                $personas = array_map('trim', explode("\n", $_POST['bot_personas']));
+                $personas = array_filter(array_map('sanitize_text_field', $personas));
+            }
 
-        $settings = array(
-            'gcc_exchange_rate' => floatval($_POST['exchange_rate']),
-            'gcc_exchange_rate_display' => sanitize_text_field($_POST['exchange_rate_display']),
-            'gcc_bot_personas' => $personas,
-            'gcc_current_persona' => sanitize_text_field($_POST['current_persona']),
-            'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info']),
-            'gcc_email_template' => wp_kses_post($_POST['email_template']),
-            'gcc_api_url' => esc_url_raw($_POST['api_url']),
-            'gcc_api_key' => sanitize_text_field($_POST['api_key']),
-            'gcc_api_update_interval' => intval($_POST['api_update_interval']),
-            'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold']),
-            'gcc_calendly_url' => esc_url_raw($_POST['calendly_url']),
-            'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
-            'gcc_notification_email' => sanitize_email($_POST['notification_email'] ?? '')
-        );
+            if (empty($personas)) {
+                $personas = array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA');
+            }
 
-        foreach ($settings as $key => $value) {
-            update_option($key, $value);
+            $settings = array(
+                'gcc_exchange_rate' => floatval($_POST['exchange_rate'] ?? 117.5),
+                'gcc_exchange_rate_display' => sanitize_text_field($_POST['exchange_rate_display'] ?? 'EUR/RSD: 117.5'),
+                'gcc_bot_personas' => $personas,
+                'gcc_current_persona' => sanitize_text_field($_POST['current_persona'] ?? 'ZLATIJA'),
+                'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info'] ?? ''),
+                'gcc_email_template' => wp_kses_post($_POST['email_template'] ?? ''),
+                'gcc_api_url' => esc_url_raw($_POST['api_url'] ?? ''),
+                'gcc_api_key' => sanitize_text_field($_POST['api_key'] ?? ''),
+                'gcc_api_update_interval' => intval($_POST['api_update_interval'] ?? 24),
+                'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold'] ?? 30000),
+                'gcc_calendly_url' => $this->sanitize_calendly_url($_POST['calendly_url'] ?? ''),
+                'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
+                'gcc_notification_email' => sanitize_email($_POST['notification_email'] ?? get_option('admin_email'))
+            );
+
+            error_log('GCC: About to save ' . count($settings) . ' settings');
+
+            foreach ($settings as $key => $value) {
+                $result = update_option($key, $value);
+                if (!$result && get_option($key) !== $value) {
+                    error_log("GCC: Failed to update option $key");
+                }
+            }
+
+            error_log('GCC: Settings save completed successfully');
+        } catch (Exception $e) {
+            error_log('GCC: Settings save exception: ' . $e->getMessage());
+            throw $e;
         }
+    }
+
+    private function debug_log($message)
+    {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('GCC Debug: ' . $message);
+        }
+    }
+
+    private function sanitize_calendly_url($url)
+    {
+        // Just store whatever is pasted - no validation or modification
+        return sanitize_text_field($url);
+    }
+
+    public function get_calendly_url()
+    {
+        // No nonce check needed for public endpoint
+        $calendly_url = get_option('gcc_calendly_url', '');
+        
+        wp_send_json_success(array(
+            'calendly_url' => $calendly_url
+        ));
     }
 
     public function create_product()
