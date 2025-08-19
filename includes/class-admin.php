@@ -108,6 +108,23 @@ class GCC_Admin
         register_setting('gcc_settings', 'gcc_user_avatar_image');
         register_setting('gcc_settings', 'gcc_notification_email');
         register_setting('gcc_settings', 'gcc_budget_buckets');
+        
+        // Chatbot appearance settings
+        register_setting('gcc_settings', 'gcc_chatbot_font_family');
+        register_setting('gcc_settings', 'gcc_chat_header_font_family');
+        register_setting('gcc_settings', 'gcc_chat_container_bg_color');
+        register_setting('gcc_settings', 'gcc_chat_header_bg_color');
+        register_setting('gcc_settings', 'gcc_chat_header_text_color');
+        register_setting('gcc_settings', 'gcc_ai_avatar_bg_color');
+        register_setting('gcc_settings', 'gcc_ai_avatar_text_color');
+        register_setting('gcc_settings', 'gcc_ai_bubble_bg_color');
+        register_setting('gcc_settings', 'gcc_ai_bubble_text_color');
+        register_setting('gcc_settings', 'gcc_ai_time_text_color');
+        register_setting('gcc_settings', 'gcc_user_avatar_bg_color');
+        register_setting('gcc_settings', 'gcc_user_avatar_text_color');
+        register_setting('gcc_settings', 'gcc_user_bubble_bg_color');
+        register_setting('gcc_settings', 'gcc_user_bubble_text_color');
+        register_setting('gcc_settings', 'gcc_user_time_text_color');
     }
 
     public function enqueue_admin_scripts($hook)
@@ -555,6 +572,32 @@ class GCC_Admin
                 'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
                 'gcc_notification_email' => sanitize_email($_POST['notification_email'] ?? get_option('admin_email'))
             );
+
+            // Add chatbot appearance settings if they exist in POST data
+            $chatbot_appearance_settings = array(
+                'gcc_chatbot_font_family' => sanitize_text_field($_POST['chatbot_font_family'] ?? ''),
+                'gcc_chat_header_font_family' => sanitize_text_field($_POST['chat_header_font_family'] ?? ''),
+                'gcc_chat_container_bg_color' => sanitize_hex_color($_POST['chat_container_bg_color'] ?? ''),
+                'gcc_chat_header_bg_color' => sanitize_hex_color($_POST['chat_header_bg_color'] ?? ''),
+                'gcc_chat_header_text_color' => sanitize_hex_color($_POST['chat_header_text_color'] ?? ''),
+                'gcc_ai_avatar_bg_color' => sanitize_hex_color($_POST['ai_avatar_bg_color'] ?? ''),
+                'gcc_ai_avatar_text_color' => sanitize_hex_color($_POST['ai_avatar_text_color'] ?? ''),
+                'gcc_ai_bubble_bg_color' => sanitize_hex_color($_POST['ai_bubble_bg_color'] ?? ''),
+                'gcc_ai_bubble_text_color' => sanitize_hex_color($_POST['ai_bubble_text_color'] ?? ''),
+                'gcc_ai_time_text_color' => sanitize_hex_color($_POST['ai_time_text_color'] ?? ''),
+                'gcc_user_avatar_bg_color' => sanitize_hex_color($_POST['user_avatar_bg_color'] ?? ''),
+                'gcc_user_avatar_text_color' => sanitize_hex_color($_POST['user_avatar_text_color'] ?? ''),
+                'gcc_user_bubble_bg_color' => sanitize_hex_color($_POST['user_bubble_bg_color'] ?? ''),
+                'gcc_user_bubble_text_color' => sanitize_hex_color($_POST['user_bubble_text_color'] ?? ''),
+                'gcc_user_time_text_color' => sanitize_hex_color($_POST['user_time_text_color'] ?? '')
+            );
+
+            // Only include appearance settings that have values
+            foreach ($chatbot_appearance_settings as $key => $value) {
+                if (!empty($value)) {
+                    $settings[$key] = $value;
+                }
+            }
 
             error_log('GCC: About to save ' . count($settings) . ' settings');
 
