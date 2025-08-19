@@ -122,35 +122,139 @@ class GCC_Chatbot_API {
     }
     
     private function calculate_optimal_combination($products, $budget) {
+        if (empty($products)) {
+            return array();
+        }
+        
         $suggestion = array();
         $remaining_budget = $budget;
+        $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+        $remaining_budget_rsd = $budget * $exchange_rate;
         
-        foreach ($products as $product) {
+        // Shuffle products to add randomization to offers
+        shuffle($products);
+        
+        // Filter products that can fit in budget
+        $affordable_products = array_filter($products, function($product) use ($remaining_budget_rsd) {
+            return $product->final_price <= $remaining_budget_rsd;
+        });
+        
+        if (empty($affordable_products)) {
+            return array();
+        }
+        
+        // Strategy: Create diverse combinations instead of maxing out one product
+        $max_products_to_include = min(count($affordable_products), 5); // Include up to 5 different products
+        $selected_products = array_slice($affordable_products, 0, $max_products_to_include);
+        
+        // For each selected product, calculate a reasonable quantity (not maximum)
+        foreach ($selected_products as $product) {
             $price = $product->final_price;
-            $quantity = floor($remaining_budget / $price);
             
-            if ($quantity > 0) {
+            if ($price > $remaining_budget_rsd) {
+                continue;
+            }
+            
+            // Calculate max possible quantity for this product
+            $max_quantity = floor($remaining_budget_rsd / $price);
+            
+            if ($max_quantity <= 0) {
+                continue;
+            }
+            
+            // Use strategic quantity allocation instead of maxing out
+            $strategic_quantity = $this->calculate_strategic_quantity($max_quantity, $remaining_budget_rsd, $price, count($selected_products));
+            
+            if ($strategic_quantity > 0) {
+                $product_total = $price * $strategic_quantity;
+                
                 $product_suggestion = array(
                     'id' => $product->id,
                     'name' => $product->name,
                     'weight' => $product->weight,
                     'price' => $price,
-                    'quantity' => $quantity,
-                    'total' => $price * $quantity,
-                    'image_url' => $product->image_url
+                    'quantity' => $strategic_quantity,
+                    'total' => $product_total,
+                    'image_url' => $product->image_url,
+                    'final_price_eur' => $product->final_price_eur ?? ($price / $exchange_rate)
                 );
                 
                 $suggestion[] = $product_suggestion;
-                $remaining_budget -= $price * $quantity;
+                $remaining_budget_rsd -= $product_total;
             }
             
-            // If we've used most of the budget, stop
-            if ($remaining_budget < ($budget * 0.1)) {
+            // Stop if we've used 85% of budget to leave room for variety
+            if ($remaining_budget_rsd < ($budget * $exchange_rate * 0.15)) {
                 break;
             }
         }
         
+        // If we still have significant budget left, try to add one more expensive item
+        if ($remaining_budget_rsd > ($budget * $exchange_rate * 0.2) && count($suggestion) > 0) {
+            $this->try_add_bonus_item($suggestion, $affordable_products, $remaining_budget_rsd);
+        }
+        
+        // Sort by price ascending to show cheaper items first
+        usort($suggestion, function($a, $b) {
+            return $a['price'] - $b['price'];
+        });
+        
         return $suggestion;
+    }
+    
+    /**
+     * Calculate strategic quantity instead of maximum quantity to create variety
+     */
+    private function calculate_strategic_quantity($max_quantity, $remaining_budget, $item_price, $total_products) {
+        // For expensive items (> 30% of budget), limit to 1-2 pieces
+        if ($item_price > ($remaining_budget * 0.3)) {
+            return min($max_quantity, rand(1, 2));
+        }
+        
+        // For medium items (10-30% of budget), limit to 2-4 pieces
+        if ($item_price > ($remaining_budget * 0.1)) {
+            return min($max_quantity, rand(2, 4));
+        }
+        
+        // For cheaper items, allow more but still limit for variety
+        if ($total_products > 3) {
+            // If we have many products, limit each to create variety
+            return min($max_quantity, rand(3, 8));
+        } else {
+            // If we have few products, allow more of each
+            return min($max_quantity, rand(5, 12));
+        }
+    }
+    
+    /**
+     * Try to add one more item with remaining budget
+     */
+    private function try_add_bonus_item(&$suggestion, $products, $remaining_budget) {
+        // Get products not already in suggestion
+        $used_ids = array_column($suggestion, 'id');
+        $available_products = array_filter($products, function($product) use ($used_ids, $remaining_budget) {
+            return !in_array($product->id, $used_ids) && $product->final_price <= $remaining_budget;
+        });
+        
+        if (!empty($available_products)) {
+            // Pick a random available product
+            $bonus_product = $available_products[array_rand($available_products)];
+            $quantity = floor($remaining_budget / $bonus_product->final_price);
+            
+            if ($quantity > 0) {
+                $exchange_rate = get_option('gcc_exchange_rate', 117.5);
+                $suggestion[] = array(
+                    'id' => $bonus_product->id,
+                    'name' => $bonus_product->name,
+                    'weight' => $bonus_product->weight,
+                    'price' => $bonus_product->final_price,
+                    'quantity' => min($quantity, 3), // Limit bonus items
+                    'total' => $bonus_product->final_price * min($quantity, 3),
+                    'image_url' => $bonus_product->image_url,
+                    'final_price_eur' => $bonus_product->final_price_eur ?? ($bonus_product->final_price / $exchange_rate)
+                );
+            }
+        }
     }
     
     public function get_bot_personas() {

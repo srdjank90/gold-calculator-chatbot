@@ -515,13 +515,13 @@ class GCC_Database
         // Handle combo type - get both bars and ducats
         if ($type === 'combo') {
             $where_type = "AND type IN ('bar', 'ducat')";
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' $where_type ORDER BY price ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' $where_type ORDER BY RAND(), price ASC";
             $products = $wpdb->get_results($query);
         } else if ($type !== 'all') {
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND type = %s ORDER BY price ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' AND type = %s ORDER BY RAND(), price ASC";
             $products = $wpdb->get_results($wpdb->prepare($query, $type));
         } else {
-            $query = "SELECT * FROM $this->table_products WHERE status = 'published' ORDER BY price ASC";
+            $query = "SELECT * FROM $this->table_products WHERE status = 'published' ORDER BY RAND(), price ASC";
             $products = $wpdb->get_results($query);
         }
 
@@ -1669,12 +1669,19 @@ class GCC_Database
             $budget_eur = $budget_rsd / $exchange_rate;
         }
 
-        // Use greedy algorithm to fill budget optimally (all calculations in RSD)
+        // Use diverse product selection algorithm instead of greedy (all calculations in RSD)
         $selected_products = array();
         $total_value_rsd = 0;
-        $target_budget_rsd = $budget_rsd * 0.98; // Target 98% of budget
+        $target_budget_rsd = $budget_rsd * 0.95; // Target 95% of budget to leave room for variety
 
-        foreach ($products as $product) {
+        // Add randomization to create different offers each time
+        shuffle($products);
+        
+        // Limit to top products to create variety instead of using all
+        $max_products_to_consider = min(count($products), 6);
+        $products_to_use = array_slice($products, 0, $max_products_to_consider);
+
+        foreach ($products_to_use as $product) {
             $remaining_budget_rsd = $budget_rsd - $total_value_rsd;
 
             // Skip if product is too expensive
@@ -1686,19 +1693,11 @@ class GCC_Database
             $max_quantity = floor($remaining_budget_rsd / $product->final_price);
 
             if ($max_quantity > 0) {
-                // Check if adding this product gets us closer to target
-                $product_total = $max_quantity * $product->final_price;
+                // Use strategic quantity instead of maximum to create variety
+                $strategic_quantity = $this->calculate_strategic_quantity_for_database($max_quantity, $remaining_budget_rsd, $product->final_price, count($products_to_use));
+                $product_total = $strategic_quantity * $product->final_price;
 
-                // If we're close to target, try to optimize quantity
-                if ($total_value_rsd + $product_total > $target_budget_rsd) {
-                    $optimal_quantity = floor(($target_budget_rsd - $total_value_rsd) / $product->final_price);
-                    if ($optimal_quantity > 0) {
-                        $max_quantity = $optimal_quantity;
-                        $product_total = $max_quantity * $product->final_price;
-                    }
-                }
-
-                if ($max_quantity > 0) {
+                if ($strategic_quantity > 0) {
                     $selected_products[] = array(
                         'id' => $product->id,
                         'name' => $product->name,
@@ -1706,7 +1705,7 @@ class GCC_Database
                         'weight' => $product->weight,
                         'final_price' => $product->final_price,
                         'final_price_eur' => $product->final_price / $exchange_rate,
-                        'quantity' => $max_quantity,
+                        'quantity' => $strategic_quantity,
                         'total_price' => $product_total,
                         'total_price_eur' => $product_total / $exchange_rate
                     );
@@ -1725,6 +1724,30 @@ class GCC_Database
             'budget_used' => $total_value_eur,
             'budget_remaining' => $budget_eur - $total_value_eur
         );
+    }
+
+    /**
+     * Calculate strategic quantity for database operations to create variety in offers
+     */
+    private function calculate_strategic_quantity_for_database($max_quantity, $remaining_budget, $item_price, $total_products) {
+        // For expensive items (> 30% of remaining budget), limit to 1-3 pieces
+        if ($item_price > ($remaining_budget * 0.3)) {
+            return min($max_quantity, rand(1, 3));
+        }
+        
+        // For medium items (10-30% of remaining budget), limit to 2-5 pieces
+        if ($item_price > ($remaining_budget * 0.1)) {
+            return min($max_quantity, rand(2, 5));
+        }
+        
+        // For cheaper items, allow more but still limit for variety
+        if ($total_products > 4) {
+            // If we have many products, limit each to create more variety
+            return min($max_quantity, rand(3, 10));
+        } else {
+            // If we have fewer products, allow more of each
+            return min($max_quantity, rand(6, 15));
+        }
     }
 
     private function optimize_remaining_budget($current_products, $all_products, $remaining_budget_rsd, $exchange_rate)
