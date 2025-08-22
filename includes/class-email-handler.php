@@ -206,11 +206,11 @@ class GCC_Email_Handler
     {
         switch ($type) {
             case 'bars':
-                return 'Samo poluge';
+                return 'Više zlatnih poluga';
             case 'ducats':
-                return 'Samo dukati';
+                return 'Više zlatnih dukata';
             case 'combo':
-                return 'Kombinacija poluga i dukata';
+                return 'Pola dukati, a pola poluge';
             default:
                 return $type;
         }

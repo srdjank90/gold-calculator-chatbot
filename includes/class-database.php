@@ -1228,9 +1228,9 @@ class GCC_Database
             array(
                 'question' => 'Odlično! Koji tip zlata preferirate?',
                 'options' => json_encode(array(
-                    array('value' => 'bars', 'label' => 'Samo poluge/pločice'),
-                    array('value' => 'ducats', 'label' => 'Samo dukati'),
-                    array('value' => 'combo', 'label' => 'Kombinacija poluga i dukata')
+                    array('value' => 'bars', 'label' => 'Više zlatnih poluga'),
+                    array('value' => 'ducats', 'label' => 'Više zlatnih dukata'),
+                    array('value' => 'combo', 'label' => 'Pola dukati, a pola poluge')
                 )),
                 'attributes' => json_encode(array('product_type' => true)),
                 'question_order' => 2,
@@ -1676,7 +1676,7 @@ class GCC_Database
 
         // Add randomization to create different offers each time
         shuffle($products);
-        
+
         // Limit to top products to create variety instead of using all
         $max_products_to_consider = min(count($products), 6);
         $products_to_use = array_slice($products, 0, $max_products_to_consider);
@@ -1729,17 +1729,18 @@ class GCC_Database
     /**
      * Calculate strategic quantity for database operations to create variety in offers
      */
-    private function calculate_strategic_quantity_for_database($max_quantity, $remaining_budget, $item_price, $total_products) {
+    private function calculate_strategic_quantity_for_database($max_quantity, $remaining_budget, $item_price, $total_products)
+    {
         // For expensive items (> 30% of remaining budget), limit to 1-3 pieces
         if ($item_price > ($remaining_budget * 0.3)) {
             return min($max_quantity, rand(1, 3));
         }
-        
+
         // For medium items (10-30% of remaining budget), limit to 2-5 pieces
         if ($item_price > ($remaining_budget * 0.1)) {
             return min($max_quantity, rand(2, 5));
         }
-        
+
         // For cheaper items, allow more but still limit for variety
         if ($total_products > 4) {
             // If we have many products, limit each to create more variety

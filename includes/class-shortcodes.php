@@ -153,7 +153,7 @@ class GCC_Shortcodes
             function gccAddInlineOptions(messageDiv, optionsData) {
                 const optionsContainer = document.createElement('div');
                 optionsContainer.className = 'gcc-inline-options';
-                
+
                 optionsData.options.forEach(option => {
                     const button = document.createElement('button');
                     button.className = 'gcc-inline-option-btn';
@@ -169,7 +169,7 @@ class GCC_Shortcodes
                     };
                     optionsContainer.appendChild(button);
                 });
-                
+
                 messageDiv.appendChild(optionsContainer);
             }
 
@@ -187,14 +187,25 @@ class GCC_Shortcodes
 
                 // Hide previous options
                 gccHideAllOptions(chatId);
-                
+
                 gccAddMessage(chatId, budgetText, true);
 
                 setTimeout(() => {
-                    const typeOptions = [
-                        { text: 'Samo poluge', value: 'bar', display: 'Samo poluge' },
-                        { text: 'Samo dukati', value: 'ducat', display: 'Samo dukati' },
-                        { text: 'Kombinacija', value: 'combo', display: 'Kombinacija poluga i dukata' }
+                    const typeOptions = [{
+                            text: 'Više zlatnih poluga',
+                            value: 'bar',
+                            display: 'Više zlatnih poluga'
+                        },
+                        {
+                            text: 'Više zlatnih dukata',
+                            value: 'ducat',
+                            display: 'Više zlatnih dukata'
+                        },
+                        {
+                            text: 'Pola dukati, a pola poluge',
+                            value: 'combo',
+                            display: 'Pola dukati, a pola poluge'
+                        }
                     ];
                     gccAddMessage(chatId, '🥈 Odlično! Sada da vidimo kakav tip zlata preferirate.', false, true, {
                         type: 'type',
@@ -209,13 +220,20 @@ class GCC_Shortcodes
 
                 // Hide previous options
                 gccHideAllOptions(chatId);
-                
+
                 gccAddMessage(chatId, typeText, true);
 
                 setTimeout(() => {
-                    const deliveryOptions = [
-                        { text: 'Sa stanja', value: 'stock', display: 'Sa stanja' },
-                        { text: 'Avansna isplata', value: 'advance', display: 'Avansna isplata' }
+                    const deliveryOptions = [{
+                            text: 'Sa stanja',
+                            value: 'stock',
+                            display: 'Sa stanja'
+                        },
+                        {
+                            text: 'Avansna isplata',
+                            value: 'advance',
+                            display: 'Avansna isplata'
+                        }
                     ];
                     gccAddMessage(chatId, '🥉 Kako biste želeli da primite zlato?', false, true, {
                         type: 'delivery',
@@ -230,7 +248,7 @@ class GCC_Shortcodes
 
                 // Hide previous options
                 gccHideAllOptions(chatId);
-                
+
                 gccAddMessage(chatId, deliveryText, true);
 
                 setTimeout(() => {
@@ -360,14 +378,33 @@ class GCC_Shortcodes
             }
 
             function gccShowBudgetOptions(chatId) {
-                const budgetOptions = [
-                    { text: '1.000€', value: '1000', display: '1.000€' },
-                    { text: '2.500€', value: '2500', display: '2.500€' },
-                    { text: '5.000€', value: '5000', display: '5.000€' },
-                    { text: '10.000€', value: '10000', display: '10.000€' },
-                    { text: '25.000€', value: '25000', display: '25.000€' }
+                const budgetOptions = [{
+                        text: '1.000€',
+                        value: '1000',
+                        display: '1.000€'
+                    },
+                    {
+                        text: '2.500€',
+                        value: '2500',
+                        display: '2.500€'
+                    },
+                    {
+                        text: '5.000€',
+                        value: '5000',
+                        display: '5.000€'
+                    },
+                    {
+                        text: '10.000€',
+                        value: '10000',
+                        display: '10.000€'
+                    },
+                    {
+                        text: '25.000€',
+                        value: '25000',
+                        display: '25.000€'
+                    }
                 ];
-                
+
                 gccAddMessage(chatId, '🥇 Koliki je vaš budžet za investiciju u zlato?', false, true, {
                     type: 'budget',
                     options: budgetOptions

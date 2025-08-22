@@ -27,22 +27,22 @@
                 <button class="gcc-product-type-btn" data-type="bars">
                     <div class="gcc-option-icon">🟫</div>
                     <div class="gcc-option-text">
-                        <strong>Samo poluge</strong>
+                        <strong>Više zlatnih poluga</strong>
                         <small>Klasične zlatne poluge</small>
                     </div>
                 </button>
                 <button class="gcc-product-type-btn" data-type="ducats">
                     <div class="gcc-option-icon">🪙</div>
                     <div class="gcc-option-text">
-                        <strong>Samo dukati</strong>
+                        <strong>Više zlatnih dukata</strong>
                         <small>Tradicionalni zlatni dukati</small>
                     </div>
                 </button>
                 <button class="gcc-product-type-btn" data-type="combo">
                     <div class="gcc-option-icon">🎯</div>
                     <div class="gcc-option-text">
-                        <strong>Kombinacija</strong>
-                        <small>Poluge i dukati</small>
+                        <strong>Pola dukati, a pola poluge</strong>
+                        <small>Pola dukati, a pola poluge</small>
                     </div>
                 </button>
             </div>
