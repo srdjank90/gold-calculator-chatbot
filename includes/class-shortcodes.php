@@ -573,7 +573,7 @@ class GCC_Shortcodes
             foreach ($submit_data['selected_products'] as $product) {
                 $full_comment .= "- " . $product['name'] . " (Količina: " . $product['quantity'] . ", Cena: €" . number_format($product['price'], 2) . ", Ukupno: €" . number_format($product['total'], 2) . ")\n";
             }
-            $full_comment .= "Ukupna vrednost: €" . number_format($submit_data['total_amount'], 2) . "\n";
+            $full_comment .= "Ukupna vrednost: " . number_format($submit_data['total_amount'], 2) . " RSD\n";
         }
 
         $full_comment .= "\nKomentar: " . $submit_data['comment'];

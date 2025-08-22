@@ -156,7 +156,7 @@ class GCC_Database
                 'price' => 311283.00,
                 'price_avans' => 311283.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 240,
             ),
             array(
@@ -211,7 +211,7 @@ class GCC_Database
                 'price' => 1428949.00,
                 'price_avans' => 1428949.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 241,
             ),
             array(
@@ -244,7 +244,7 @@ class GCC_Database
                 'price' => 2801631.00,
                 'price_avans' => 2801631.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 243,
             ),
             array(
@@ -277,7 +277,7 @@ class GCC_Database
                 'price' => 5581705.00,
                 'price_avans' => 5581705.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 242,
             ),
             array(
@@ -310,7 +310,7 @@ class GCC_Database
                 'price' => 8638855.00,
                 'price_avans' => 8638855.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 244,
             ),
             array(
@@ -343,7 +343,7 @@ class GCC_Database
                 'price' => 13820217.00,
                 'price_avans' => 13820217.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 245,
             ),
             array(
@@ -376,7 +376,7 @@ class GCC_Database
                 'price' => 27506170.00,
                 'price_avans' => 27506170.00,
                 'type' => 'bar',
-                'status' => 'published',
+                'status' => 'draft',
                 'external_id' => 246,
             ),
             array(
@@ -1228,9 +1228,9 @@ class GCC_Database
             array(
                 'question' => 'Odlično! Koji tip zlata preferirate?',
                 'options' => json_encode(array(
-                    array('value' => 'bars', 'label' => 'Više zlatnih poluga'),
-                    array('value' => 'ducats', 'label' => 'Više zlatnih dukata'),
-                    array('value' => 'combo', 'label' => 'Pola dukati, a pola poluge')
+                    array('value' => 'bars', 'label' => 'Samo poluge/pločice'),
+                    array('value' => 'ducats', 'label' => 'Samo dukati'),
+                    array('value' => 'combo', 'label' => 'Kombinacija poluga i dukata')
                 )),
                 'attributes' => json_encode(array('product_type' => true)),
                 'question_order' => 2,
@@ -1238,11 +1238,11 @@ class GCC_Database
                 'condition_logic' => 'budget < 30000'
             ),
             array(
-                'question' => 'Kakav procenat zlata želite?',
+                'question' => 'Kakav odnos zlata želite?',
                 'options' => json_encode(array(
-                    array('value' => '50', 'label' => 'Pola Pola'),
-                    array('value' => '33', 'label' => 'Više Dukata'),
-                    array('value' => '67', 'label' => 'Više Poluga')
+                    array('value' => '50', 'label' => 'Pola dukati, a pola poluge'),
+                    array('value' => '33', 'label' => 'Više zlatnih dukata'),
+                    array('value' => '67', 'label' => 'Više zlatnih poluga')
                 )),
                 'attributes' => json_encode(array('combo_percentage' => true)),
                 'question_order' => 3,

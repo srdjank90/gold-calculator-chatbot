@@ -59,7 +59,7 @@ class GCC_Email_Handler
             foreach ($quote_data['selected_products'] as $product) {
                 $quantity = isset($product['quantity']) ? $product['quantity'] : 1;
                 $products_html .= sprintf(
-                    '<li>%s (%s) - %d kom - €%.2f</li>',
+                    '<li>%s (%s) - %d kom - %.2f RSD</li>',
                     $product['name'],
                     $product['weight'],
                     $quantity,
