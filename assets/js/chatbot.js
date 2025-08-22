@@ -502,17 +502,7 @@ jQuery(document).ready(function ($) {
           // Embed Calendly in the same page under chatbot
           setTimeout(() => {
             let calendlyUrl = response.data.calendly_url.trim()
-            console.log("Original Calendly URL:", calendlyUrl) // Debug log
-            
-            // Convert regular Calendly URL to embed format if needed
-            if (calendlyUrl.includes('calendly.com/') && !calendlyUrl.includes('?embed=')) {
-              // Add embed parameters for proper iframe display
-              const separator = calendlyUrl.includes('?') ? '&' : '?'
-              calendlyUrl += `${separator}embed_domain=${window.location.hostname}&embed_type=Inline`
-            }
-            
-            console.log("Embedding Calendly URL:", calendlyUrl) // Debug log
-            
+
             // Create iframe for Calendly
             const calendlyIframe = `
               <div class="gcc-calendly-container">
@@ -523,7 +513,7 @@ jQuery(document).ready(function ($) {
                 <iframe src="${calendlyUrl}" width="100%" height="650" frameborder="0" scrolling="yes" style="min-height: 650px;"></iframe>
               </div>
             `
-            
+
             // Show Calendly in the products container
             $("#gcc-products-container").html(calendlyIframe).show()
           }, 1000)

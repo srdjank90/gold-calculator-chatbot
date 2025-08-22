@@ -633,7 +633,8 @@ class GCC_Admin
 
     public function get_calendly_url()
     {
-        // No nonce check needed for public endpoint
+        check_ajax_referer('gcc_nonce', 'nonce');
+        
         $calendly_url = get_option('gcc_calendly_url', '');
 
         wp_send_json_success(array(
