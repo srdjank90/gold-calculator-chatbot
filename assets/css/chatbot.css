@@ -1113,6 +1113,9 @@
 .gcc-calendly-container iframe {
   display: block;
   border: none;
+  width: 100%;
+  min-height: 650px;
+  background: white;
 }
 
 @media (max-width: 768px) {

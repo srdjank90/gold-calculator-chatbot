@@ -501,7 +501,16 @@ jQuery(document).ready(function ($) {
         if (response.success && response.data.calendly_url && response.data.calendly_url.trim() !== "") {
           // Embed Calendly in the same page under chatbot
           setTimeout(() => {
-            const calendlyUrl = response.data.calendly_url.trim()
+            let calendlyUrl = response.data.calendly_url.trim()
+            console.log("Original Calendly URL:", calendlyUrl) // Debug log
+            
+            // Convert regular Calendly URL to embed format if needed
+            if (calendlyUrl.includes('calendly.com/') && !calendlyUrl.includes('?embed=')) {
+              // Add embed parameters for proper iframe display
+              const separator = calendlyUrl.includes('?') ? '&' : '?'
+              calendlyUrl += `${separator}embed_domain=${window.location.hostname}&embed_type=Inline`
+            }
+            
             console.log("Embedding Calendly URL:", calendlyUrl) // Debug log
             
             // Create iframe for Calendly
@@ -511,7 +520,7 @@ jQuery(document).ready(function ($) {
                   <h3>Zakažite sastanak</h3>
                   <button class="gcc-close-calendly" onclick="$('.gcc-calendly-container').remove()">✕</button>
                 </div>
-                <iframe src="${calendlyUrl}" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+                <iframe src="${calendlyUrl}" width="100%" height="650" frameborder="0" scrolling="yes" style="min-height: 650px;"></iframe>
               </div>
             `
             

@@ -111,8 +111,8 @@ class GoldCalculatorChatbot
 
     public function enqueue_scripts()
     {
-        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.4.1', true);
-        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.4.1');
+        wp_enqueue_script('gcc-chatbot-js', GCC_PLUGIN_URL . 'assets/js/chatbot.js', array('jquery'), '2.4.2', true);
+        wp_enqueue_style('gcc-chatbot-css', GCC_PLUGIN_URL . 'assets/css/chatbot.css', array(), '2.4.2');
 
         // Add custom chatbot styles
         $this->add_custom_chatbot_styles();
