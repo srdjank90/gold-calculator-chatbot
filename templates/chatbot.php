@@ -10,7 +10,7 @@
         </div>
         <div class="header-info">
             <h1><?php echo esc_html($atts['persona']); ?></h1>
-            <p>Online • Ready to help</p>
+            <p>Uvek na usluzi i spremna da pomogne</p>
         </div>
     </div>
 
