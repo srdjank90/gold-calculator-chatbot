@@ -499,11 +499,24 @@ jQuery(document).ready(function ($) {
       dataType: "json",
       success: function (response) {
         if (response.success && response.data.calendly_url && response.data.calendly_url.trim() !== "") {
-          // Open Calendly link in new tab
+          // Embed Calendly in the same page under chatbot
           setTimeout(() => {
             const calendlyUrl = response.data.calendly_url.trim()
-            console.log("Opening Calendly URL:", calendlyUrl) // Debug log
-            window.open(calendlyUrl, "_blank", "width=800,height=600")
+            console.log("Embedding Calendly URL:", calendlyUrl) // Debug log
+            
+            // Create iframe for Calendly
+            const calendlyIframe = `
+              <div class="gcc-calendly-container">
+                <div class="gcc-calendly-header">
+                  <h3>Zakažite sastanak</h3>
+                  <button class="gcc-close-calendly" onclick="$('.gcc-calendly-container').remove()">✕</button>
+                </div>
+                <iframe src="${calendlyUrl}" width="100%" height="600" frameborder="0" scrolling="no"></iframe>
+              </div>
+            `
+            
+            // Show Calendly in the products container
+            $("#gcc-products-container").html(calendlyIframe).show()
           }, 1000)
         } else {
           // Fallback message if no Calendly URL is configured
