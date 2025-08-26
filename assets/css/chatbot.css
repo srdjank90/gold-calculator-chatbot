@@ -1088,6 +1088,7 @@
   margin: 0;
   font-size: 18px;
   font-weight: 600;
+  color: #ffffff;
 }
 
 .gcc-close-calendly {
@@ -1122,11 +1123,11 @@
   .gcc-calendly-container iframe {
     height: 500px;
   }
-  
+
   .gcc-calendly-header {
     padding: 12px 16px;
   }
-  
+
   .gcc-calendly-header h3 {
     font-size: 16px;
   }
