@@ -3,8 +3,9 @@
 /**
  * Plugin Name: Gold Calculator Chatbot
  * Description: A chatbot assistant for gold investment purposes
- * Version: 1.0.1
- * Author: Srdjan Kordic
+ * Version: 1.0.5
+ * Author: Zlatni Standard
+ * Author URI: https://zlatnistandard.rs
  */
 
 // Prevent direct access
