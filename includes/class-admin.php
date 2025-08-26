@@ -544,65 +544,96 @@ class GCC_Admin
         error_log('GCC: Starting settings save process');
 
         try {
-            // Handle personas array
-            $personas = array();
-            if (isset($_POST['bot_personas']) && is_array($_POST['bot_personas'])) {
-                $personas = array_map('sanitize_text_field', $_POST['bot_personas']);
-            } elseif (isset($_POST['bot_personas']) && is_string($_POST['bot_personas'])) {
-                $personas = array_map('trim', explode("\n", $_POST['bot_personas']));
-                $personas = array_filter(array_map('sanitize_text_field', $personas));
+            $settings = array();
+
+            // Only save settings that are present in the form submission
+            // General tab settings
+            if (isset($_POST['exchange_rate'])) {
+                $settings['gcc_exchange_rate'] = floatval($_POST['exchange_rate']);
+            }
+            if (isset($_POST['exchange_rate_display'])) {
+                $settings['gcc_exchange_rate_display'] = sanitize_text_field($_POST['exchange_rate_display']);
+            }
+            if (isset($_POST['api_url'])) {
+                $settings['gcc_api_url'] = esc_url_raw($_POST['api_url']);
+            }
+            if (isset($_POST['api_key'])) {
+                $settings['gcc_api_key'] = sanitize_text_field($_POST['api_key']);
+            }
+            if (isset($_POST['api_update_interval'])) {
+                $settings['gcc_api_update_interval'] = intval($_POST['api_update_interval']);
+            }
+            if (isset($_POST['notification_email'])) {
+                $settings['gcc_notification_email'] = sanitize_email($_POST['notification_email']);
             }
 
-            if (empty($personas)) {
-                $personas = array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA');
+            // Chatbot tab settings
+            if (isset($_POST['trader_info'])) {
+                $settings['gcc_trader_info'] = sanitize_textarea_field($_POST['trader_info']);
+            }
+            if (isset($_POST['email_template'])) {
+                $settings['gcc_email_template'] = wp_kses_post($_POST['email_template']);
+            }
+            if (isset($_POST['high_budget_threshold'])) {
+                $settings['gcc_high_budget_threshold'] = intval($_POST['high_budget_threshold']);
+            }
+            if (isset($_POST['calendly_url'])) {
+                $settings['gcc_calendly_url'] = $this->sanitize_calendly_url($_POST['calendly_url']);
+            }
+            if (isset($_POST['user_avatar_image'])) {
+                $settings['gcc_user_avatar_image'] = esc_url_raw($_POST['user_avatar_image']);
             }
 
-            $settings = array(
-                'gcc_exchange_rate' => floatval($_POST['exchange_rate'] ?? 117.5),
-                'gcc_exchange_rate_display' => sanitize_text_field($_POST['exchange_rate_display'] ?? 'EUR/RSD: 117.5'),
-                'gcc_bot_personas' => $personas,
-                'gcc_current_persona' => sanitize_text_field($_POST['current_persona'] ?? 'ZLATIJA'),
-                'gcc_trader_info' => sanitize_textarea_field($_POST['trader_info'] ?? ''),
-                'gcc_email_template' => wp_kses_post($_POST['email_template'] ?? ''),
-                'gcc_api_url' => esc_url_raw($_POST['api_url'] ?? ''),
-                'gcc_api_key' => sanitize_text_field($_POST['api_key'] ?? ''),
-                'gcc_api_update_interval' => intval($_POST['api_update_interval'] ?? 24),
-                'gcc_high_budget_threshold' => intval($_POST['high_budget_threshold'] ?? 30000),
-                'gcc_calendly_url' => $this->sanitize_calendly_url($_POST['calendly_url'] ?? ''),
-                'gcc_user_avatar_image' => esc_url_raw($_POST['user_avatar_image'] ?? ''),
-                'gcc_notification_email' => sanitize_email($_POST['notification_email'] ?? get_option('admin_email'))
+            // Handle personas array (legacy support)
+            if (isset($_POST['bot_personas'])) {
+                $personas = array();
+                if (is_array($_POST['bot_personas'])) {
+                    $personas = array_map('sanitize_text_field', $_POST['bot_personas']);
+                } elseif (is_string($_POST['bot_personas'])) {
+                    $personas = array_map('trim', explode("\n", $_POST['bot_personas']));
+                    $personas = array_filter(array_map('sanitize_text_field', $personas));
+                }
+                if (!empty($personas)) {
+                    $settings['gcc_bot_personas'] = $personas;
+                }
+            }
+
+            if (isset($_POST['current_persona'])) {
+                $settings['gcc_current_persona'] = sanitize_text_field($_POST['current_persona']);
+            }
+
+            // Chatbot appearance settings
+            $appearance_fields = array(
+                'chatbot_font_family' => 'gcc_chatbot_font_family',
+                'chat_header_font_family' => 'gcc_chat_header_font_family',
+                'chat_container_bg_color' => 'gcc_chat_container_bg_color',
+                'chat_header_bg_color' => 'gcc_chat_header_bg_color',
+                'chat_header_text_color' => 'gcc_chat_header_text_color',
+                'ai_avatar_bg_color' => 'gcc_ai_avatar_bg_color',
+                'ai_avatar_text_color' => 'gcc_ai_avatar_text_color',
+                'ai_bubble_bg_color' => 'gcc_ai_bubble_bg_color',
+                'ai_bubble_text_color' => 'gcc_ai_bubble_text_color',
+                'ai_time_text_color' => 'gcc_ai_time_text_color',
+                'user_avatar_bg_color' => 'gcc_user_avatar_bg_color',
+                'user_avatar_text_color' => 'gcc_user_avatar_text_color',
+                'user_bubble_bg_color' => 'gcc_user_bubble_bg_color',
+                'user_bubble_text_color' => 'gcc_user_bubble_text_color',
+                'user_time_text_color' => 'gcc_user_time_text_color'
             );
 
-            // Add chatbot appearance settings if they exist in POST data
-            $chatbot_appearance_settings = array(
-                'gcc_chatbot_font_family' => sanitize_text_field($_POST['chatbot_font_family'] ?? ''),
-                'gcc_chat_header_font_family' => sanitize_text_field($_POST['chat_header_font_family'] ?? ''),
-                'gcc_chat_container_bg_color' => sanitize_hex_color($_POST['chat_container_bg_color'] ?? ''),
-                'gcc_chat_header_bg_color' => sanitize_hex_color($_POST['chat_header_bg_color'] ?? ''),
-                'gcc_chat_header_text_color' => sanitize_hex_color($_POST['chat_header_text_color'] ?? ''),
-                'gcc_ai_avatar_bg_color' => sanitize_hex_color($_POST['ai_avatar_bg_color'] ?? ''),
-                'gcc_ai_avatar_text_color' => sanitize_hex_color($_POST['ai_avatar_text_color'] ?? ''),
-                'gcc_ai_bubble_bg_color' => sanitize_hex_color($_POST['ai_bubble_bg_color'] ?? ''),
-                'gcc_ai_bubble_text_color' => sanitize_hex_color($_POST['ai_bubble_text_color'] ?? ''),
-                'gcc_ai_time_text_color' => sanitize_hex_color($_POST['ai_time_text_color'] ?? ''),
-                'gcc_user_avatar_bg_color' => sanitize_hex_color($_POST['user_avatar_bg_color'] ?? ''),
-                'gcc_user_avatar_text_color' => sanitize_hex_color($_POST['user_avatar_text_color'] ?? ''),
-                'gcc_user_bubble_bg_color' => sanitize_hex_color($_POST['user_bubble_bg_color'] ?? ''),
-                'gcc_user_bubble_text_color' => sanitize_hex_color($_POST['user_bubble_text_color'] ?? ''),
-                'gcc_user_time_text_color' => sanitize_hex_color($_POST['user_time_text_color'] ?? '')
-            );
-
-            // Only include appearance settings that have values
-            foreach ($chatbot_appearance_settings as $key => $value) {
-                if (!empty($value)) {
-                    $settings[$key] = $value;
+            foreach ($appearance_fields as $post_key => $option_key) {
+                if (isset($_POST[$post_key])) {
+                    if (strpos($post_key, 'font_family') !== false) {
+                        $settings[$option_key] = sanitize_text_field($_POST[$post_key]);
+                    } else {
+                        $settings[$option_key] = sanitize_hex_color($_POST[$post_key]);
+                    }
                 }
             }
 
             error_log('GCC: About to save ' . count($settings) . ' settings');
 
             foreach ($settings as $key => $value) {
-                $current_value = get_option($key);
                 $result = update_option($key, $value);
                 
                 // Only log failure if the value didn't actually get set correctly
