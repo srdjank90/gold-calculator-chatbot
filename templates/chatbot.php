@@ -7,12 +7,12 @@
             <?php else: ?>
                 <img src="<?php echo esc_url(GCC_PLUGIN_URL . 'assets/images/ai-agent-default.webp'); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
             <?php endif; ?>
-        </div>
+        </div> <!-- Close header-avatar -->
         <div class="header-info">
             <h1><?php echo esc_html($atts['persona']); ?></h1>
             <p>Uvek na usluzi i spremna da pomogne</p>
-        </div>
-    </div>
+        </div> <!-- Close header-info -->
+    </div> <!-- Close chat-header -->
 
     <!-- Messages Container -->
     <div class="messages-container" id="gcc-chatbot-messages">
@@ -24,27 +24,27 @@
                 <?php else: ?>
                     <img src="<?php echo esc_url(GCC_PLUGIN_URL . 'assets/images/ai-agent-default.webp'); ?>" alt="<?php echo esc_attr($atts['persona']); ?>" class="persona-image">
                 <?php endif; ?>
-            </div>
+            </div> <!-- Close avatar -->
             <div class="message-content">
                 <div class="message-bubble ai-bubble">
                     <p class="persona-greeting"><?php echo wp_kses_post($atts['persona_greeting']); ?></p>
-                </div>
+                </div> <!-- Close message-bubble -->
                 <div class="message-time"></div>
-            </div>
-        </div>
-    </div>
-</div>
+            </div> <!-- Close message-content -->
+        </div> <!-- Close message-wrapper -->
+    </div> <!-- Close messages-container -->
+</div> <!-- Close chat-container -->
 
 <!-- Hidden Answers Container - kept for compatibility but not shown -->
 <div class="answers-container" id="gcc-answers-container" style="display: none;">
     <div class="predefined-answers" id="gcc-predefined-answers"></div>
     <div id="gcc-step-container"></div>
-</div>
+</div> <!-- Close answers-container -->
 
 <!-- Products Container (Outside chat container) -->
 <div class="products-container" id="gcc-products-container" style="display: none;">
     <!-- Products will be dynamically loaded here -->
-</div>
+</div> <!-- Close products-container -->
 
 <!-- Hidden elements for dynamic content -->
 <div id="gcc-templates" style="display: none;">
@@ -240,7 +240,6 @@
                 </button>
             </div>
         </div>
-    </div>
+    </div> <!-- Close gcc-high-budget-template -->
 
-</div>
-</div>
+</div> <!-- Close gcc-templates -->
