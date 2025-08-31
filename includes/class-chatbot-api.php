@@ -143,12 +143,16 @@ class GCC_Chatbot_API {
             return array();
         }
         
-        // Strategy: Create diverse combinations instead of maxing out one product
-        $max_products_to_include = min(count($affordable_products), 5); // Include up to 5 different products
-        $selected_products = array_slice($affordable_products, 0, $max_products_to_include);
+        // Strategy: Maximize budget utilization by using greedy algorithm
+        // Sort products by value density (descending) - most value per RSD first
+        usort($affordable_products, function($a, $b) {
+            $value_density_a = $this->parse_weight($a->weight) / $a->final_price;
+            $value_density_b = $this->parse_weight($b->weight) / $b->final_price;
+            return $value_density_b <=> $value_density_a;
+        });
         
-        // For each selected product, calculate a reasonable quantity (not maximum)
-        foreach ($selected_products as $product) {
+        // First pass: Use greedy approach to maximize budget
+        foreach ($affordable_products as $product) {
             $price = $product->final_price;
             
             if ($price > $remaining_budget_rsd) {
@@ -162,37 +166,32 @@ class GCC_Chatbot_API {
                 continue;
             }
             
-            // Use strategic quantity allocation instead of maxing out
-            $strategic_quantity = $this->calculate_strategic_quantity($max_quantity, $remaining_budget_rsd, $price, count($selected_products));
+            // Use maximum quantity to get closest to budget
+            $quantity = $max_quantity;
+            $product_total = $price * $quantity;
             
-            if ($strategic_quantity > 0) {
-                $product_total = $price * $strategic_quantity;
-                
-                $product_suggestion = array(
-                    'id' => $product->id,
-                    'name' => $product->name,
-                    'weight' => $product->weight,
-                    'price' => $price,
-                    'quantity' => $strategic_quantity,
-                    'total' => $product_total,
-                    'image_url' => $product->image_url,
-                    'final_price_eur' => $product->final_price_eur ?? ($price / $exchange_rate)
-                );
-                
-                $suggestion[] = $product_suggestion;
-                $remaining_budget_rsd -= $product_total;
-            }
+            $product_suggestion = array(
+                'id' => $product->id,
+                'name' => $product->name,
+                'weight' => $product->weight,
+                'price' => $price,
+                'quantity' => $quantity,
+                'total' => $product_total,
+                'image_url' => $product->image_url,
+                'final_price_eur' => $product->final_price_eur ?? ($price / $exchange_rate)
+            );
             
-            // Stop if we've used 85% of budget to leave room for variety
-            if ($remaining_budget_rsd < ($budget * $exchange_rate * 0.15)) {
+            $suggestion[] = $product_suggestion;
+            $remaining_budget_rsd -= $product_total;
+            
+            // Continue until budget is nearly exhausted
+            if ($remaining_budget_rsd < 100) { // Stop when less than 100 RSD remains
                 break;
             }
         }
         
-        // If we still have significant budget left, try to add one more expensive item
-        if ($remaining_budget_rsd > ($budget * $exchange_rate * 0.2) && count($suggestion) > 0) {
-            $this->try_add_bonus_item($suggestion, $affordable_products, $remaining_budget_rsd);
-        }
+        // Second pass: Fill remaining budget with smaller items if possible
+        $this->fill_remaining_budget($suggestion, $affordable_products, $remaining_budget_rsd, $exchange_rate);
         
         // Sort by price ascending to show cheaper items first
         usort($suggestion, function($a, $b) {
@@ -203,59 +202,57 @@ class GCC_Chatbot_API {
     }
     
     /**
-     * Calculate strategic quantity instead of maximum quantity to create variety
+     * Fill remaining budget with smaller denomination items
      */
-    private function calculate_strategic_quantity($max_quantity, $remaining_budget, $item_price, $total_products) {
-        // For expensive items (> 30% of budget), limit to 1-2 pieces
-        if ($item_price > ($remaining_budget * 0.3)) {
-            return min($max_quantity, rand(1, 2));
-        }
-        
-        // For medium items (10-30% of budget), limit to 2-4 pieces
-        if ($item_price > ($remaining_budget * 0.1)) {
-            return min($max_quantity, rand(2, 4));
-        }
-        
-        // For cheaper items, allow more but still limit for variety
-        if ($total_products > 3) {
-            // If we have many products, limit each to create variety
-            return min($max_quantity, rand(3, 8));
-        } else {
-            // If we have few products, allow more of each
-            return min($max_quantity, rand(5, 12));
-        }
-    }
-    
-    /**
-     * Try to add one more item with remaining budget
-     */
-    private function try_add_bonus_item(&$suggestion, $products, $remaining_budget) {
-        // Get products not already in suggestion
+    private function fill_remaining_budget(&$suggestion, $products, $remaining_budget, $exchange_rate) {
         $used_ids = array_column($suggestion, 'id');
-        $available_products = array_filter($products, function($product) use ($used_ids, $remaining_budget) {
+        
+        // Find products that can still fit in remaining budget and aren't already used
+        $remaining_products = array_filter($products, function($product) use ($used_ids, $remaining_budget) {
             return !in_array($product->id, $used_ids) && $product->final_price <= $remaining_budget;
         });
         
-        if (!empty($available_products)) {
-            // Pick a random available product
-            $bonus_product = $available_products[array_rand($available_products)];
-            $quantity = floor($remaining_budget / $bonus_product->final_price);
+        // Sort by price ascending to start with cheapest items
+        usort($remaining_products, function($a, $b) {
+            return $a->final_price <=> $b->final_price;
+        });
+        
+        // Add as many small items as possible to maximize budget usage
+        foreach ($remaining_products as $product) {
+            $price = $product->final_price;
             
-            if ($quantity > 0) {
-                $exchange_rate = get_option('gcc_exchange_rate', 117.5);
-                $suggestion[] = array(
-                    'id' => $bonus_product->id,
-                    'name' => $bonus_product->name,
-                    'weight' => $bonus_product->weight,
-                    'price' => $bonus_product->final_price,
-                    'quantity' => min($quantity, 3), // Limit bonus items
-                    'total' => $bonus_product->final_price * min($quantity, 3),
-                    'image_url' => $bonus_product->image_url,
-                    'final_price_eur' => $bonus_product->final_price_eur ?? ($bonus_product->final_price / $exchange_rate)
-                );
+            if ($price > $remaining_budget) {
+                continue;
+            }
+            
+            $max_quantity = floor($remaining_budget / $price);
+            if ($max_quantity <= 0) {
+                continue;
+            }
+            
+            $product_total = $price * $max_quantity;
+            
+            $product_suggestion = array(
+                'id' => $product->id,
+                'name' => $product->name,
+                'weight' => $product->weight,
+                'price' => $price,
+                'quantity' => $max_quantity,
+                'total' => $product_total,
+                'image_url' => $product->image_url,
+                'final_price_eur' => $product->final_price_eur ?? ($price / $exchange_rate)
+            );
+            
+            $suggestion[] = $product_suggestion;
+            $remaining_budget -= $product_total;
+            
+            // Stop when we can't afford any more items
+            if ($remaining_budget < 50) { // Less than 50 RSD remaining
+                break;
             }
         }
     }
+    
     
     public function get_bot_personas() {
         $personas = get_option('gcc_bot_personas', array('ZLATIJA', 'ZLATA', 'ZLATKA', 'ZLATISLAVA'));
