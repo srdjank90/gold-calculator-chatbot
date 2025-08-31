@@ -1275,7 +1275,7 @@ class GCC_Database
                 'question' => 'Za veće investicije preporučujemo direktan razgovor sa trejderom. Šta želite da uradite?',
                 'options' => json_encode(array(
                     array('value' => 'schedule', 'label' => 'Zakaži razgovor sa trejderom'),
-                    array('value' => 'continue', 'label' => 'Nastavi sa online kalkulacijom')
+                    array('value' => 'restart', 'label' => 'Počni ispočetka')
                 )),
                 'attributes' => json_encode(array('high_budget_action' => true)),
                 'question_order' => 6,

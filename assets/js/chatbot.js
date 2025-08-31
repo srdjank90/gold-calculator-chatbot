@@ -274,9 +274,9 @@ jQuery(document).ready(function ($) {
                 <div class="gcc-product-item-compact" data-product-id="${product.id}">
                     <div class="gcc-product-info-compact">
                         <span class="gcc-product-name">${product.name}</span>
-                        <span class="gcc-product-price-compact">€${unitPrice.toFixed(2)} ${quantity > 1 ? "× " + quantity : ""}</span>
+                        <span class="gcc-product-price-compact">€${unitPrice.toFixed(2)} ${quantity > 0 ? "× " + quantity : ""}</span>
                         <span class="gcc-product-quantity-display">Količina: ${quantity}</span>
-                        ${quantity > 1 ? `<span class="gcc-product-total-price">Ukupno: €${totalPrice.toFixed(2)}</span>` : ""}
+                        ${quantity > 0 ? `<span class="gcc-product-total-price">Ukupno: €${totalPrice.toFixed(2)}</span>` : ""}
                     </div>
                 </div>
             `;
@@ -843,6 +843,17 @@ jQuery(document).ready(function ($) {
         addBotMessage("Odlično! Uskoro ćete biti preusmereni na kalendar za zakazivanje sastanka.");
         handleScheduleMeeting();
       }, 1000);
+      return;
+    }
+    
+    if (attributes.high_budget_action && value === "restart") {
+      // Handle chat restart
+      setTimeout(() => {
+        addBotMessage("Počinjemo ispočetka!");
+        setTimeout(() => {
+          resetChatbot();
+        }, 1000);
+      }, 500);
       return;
     }
 
