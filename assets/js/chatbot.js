@@ -262,10 +262,30 @@ jQuery(document).ready(function ($) {
     const actualTotal = chatbotState.totalValue;
     addBotMessage(`Evo predloga za vaš budžet od €${chatbotState.budget.toLocaleString()} (ukupno: €${actualTotal.toFixed(2)}):`);
 
+    // Sort products by weight (low to high) with weightless products at the end
+    const sortedProducts = [...chatbotState.selectedProducts].sort((a, b) => {
+        const parseWeight = (weight) => {
+            if (!weight) return 0;
+            const match = weight.toString().match(/(\d+(?:\.\d+)?)/);
+            return match ? parseFloat(match[1]) : 0;
+        };
+        
+        const weightA = parseWeight(a.weight);
+        const weightB = parseWeight(b.weight);
+        
+        // Products without weight (0) go to the end
+        if (weightA === 0 && weightB === 0) return 0;
+        if (weightA === 0) return 1;
+        if (weightB === 0) return -1;
+        
+        // Both have weights, sort ascending (low to high)
+        return weightA - weightB;
+    });
+
     // Create product list HTML - compact inline display
     let productListHtml = '<div class="gcc-product-list-compact">';
 
-    chatbotState.selectedProducts.forEach((product) => {
+    sortedProducts.forEach((product) => {
       const quantity = product.quantity || 1;
       const unitPrice = parseFloat(product.final_price_eur || product.final_price);
       const totalPrice = product.total_price_eur ? parseFloat(product.total_price_eur) : product.total_price ? parseFloat(product.total_price) : unitPrice * quantity;
