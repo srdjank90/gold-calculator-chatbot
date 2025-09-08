@@ -476,16 +476,13 @@ class GCC_Admin
 
     public function handle_settings_save()
     {
-        error_log('GCC: handle_settings_save() called');
 
         // Verify nonce for form submission
         if (!wp_verify_nonce($_POST['_wpnonce'], 'gcc_settings')) {
-            error_log('GCC: Nonce verification failed');
             wp_die('Security check failed');
         }
 
         if (!current_user_can('manage_options')) {
-            error_log('GCC: Insufficient permissions');
             wp_die('Insufficient permissions');
         }
 
@@ -493,9 +490,8 @@ class GCC_Admin
         try {
             $this->process_settings_save();
             $success = true;
-            error_log('GCC: Settings saved successfully');
         } catch (Exception $e) {
-            error_log('GCC Settings Save Error: ' . $e->getMessage());
+            // Settings save error suppressed in production
         }
 
         // Get the current tab if available
@@ -503,15 +499,12 @@ class GCC_Admin
 
         $redirect_url = admin_url('admin.php?page=gcc-settings&tab=' . $current_tab . '&settings-updated=' . ($success ? 'true' : 'false'));
 
-        error_log('GCC: Redirecting to: ' . $redirect_url);
-
         // Use WordPress's safe redirect with fallback for headers already sent
         if (!headers_sent()) {
             wp_safe_redirect($redirect_url);
             exit();
         } else {
             // Fallback: JavaScript redirect if headers already sent
-            error_log('GCC: Headers already sent, using JavaScript redirect');
             echo '<script type="text/javascript">window.location.href = "' . esc_js($redirect_url) . '";</script>';
             echo '<noscript><meta http-equiv="refresh" content="0; url=' . esc_attr($redirect_url) . '"></noscript>';
             echo '<p>Redirecting... <a href="' . esc_url($redirect_url) . '">Click here if you are not redirected automatically</a></p>';
@@ -540,8 +533,7 @@ class GCC_Admin
 
     private function process_settings_save()
     {
-        // Add error logging for debugging
-        error_log('GCC: Starting settings save process');
+        // Start settings save process
 
         try {
             $settings = array();
@@ -631,20 +623,19 @@ class GCC_Admin
                 }
             }
 
-            error_log('GCC: About to save ' . count($settings) . ' settings');
+            
 
             foreach ($settings as $key => $value) {
                 $result = update_option($key, $value);
                 
-                // Only log failure if the value didn't actually get set correctly
+                // Ensure value persisted
                 if (get_option($key) !== $value) {
-                    error_log("GCC: Failed to update option $key");
+                    // persist check failed
                 }
             }
 
-            error_log('GCC: Settings save completed successfully');
+            
         } catch (Exception $e) {
-            error_log('GCC: Settings save exception: ' . $e->getMessage());
             throw $e;
         }
     }
@@ -652,7 +643,7 @@ class GCC_Admin
     private function debug_log($message)
     {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('GCC Debug: ' . $message);
+            // Debug suppressed in production
         }
     }
 

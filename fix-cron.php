@@ -8,8 +8,6 @@
 wp_clear_scheduled_hook('gcc_price_sync_cron');
 wp_clear_scheduled_hook('gcc_exchange_sync_cron');
 
-echo "Cleared existing cron jobs.\n";
-
 // Add custom intervals
 if (!function_exists('gcc_add_cron_intervals')) {
     function gcc_add_cron_intervals($schedules) {
@@ -32,9 +30,4 @@ add_filter('cron_schedules', 'gcc_add_cron_intervals');
 // Schedule new cron jobs
 $result1 = wp_schedule_event(time(), 'gcc_every_minute', 'gcc_price_sync_cron');
 $result2 = wp_schedule_event(time(), 'gcc_every_2_hours', 'gcc_exchange_sync_cron');
-
-echo "Price sync cron: " . ($result1 ? 'success' : 'failed') . "\n";
-echo "Exchange sync cron: " . ($result2 ? 'success' : 'failed') . "\n";
-
-echo "Done! Delete this file now.\n";
 ?>

@@ -54,7 +54,6 @@ class GCC_API_Parser
     public function update_products_from_api()
     {
         if (empty($this->api_url)) {
-            error_log('GCC API Parser: No API URL configured');
             return false;
         }
 
@@ -67,14 +66,12 @@ class GCC_API_Parser
         $api_data = $this->fetch_api_data();
 
         if ($api_data === false) {
-            error_log('GCC API Parser: Failed to fetch API data');
             return false;
         }
 
         $products = $this->parse_api_data($api_data);
 
         if (empty($products)) {
-            error_log('GCC API Parser: No products found in API response');
             return false;
         }
 
@@ -88,8 +85,8 @@ class GCC_API_Parser
         // Update last sync timestamp
         update_option('gcc_last_api_sync', time());
 
-        error_log("GCC API Parser: Updated {$updated_count} products from API");
-
+        
+        
         return $updated_count;
     }
 
@@ -112,7 +109,6 @@ class GCC_API_Parser
         $response = wp_remote_get($this->api_url, $args);
 
         if (is_wp_error($response)) {
-            error_log('GCC API Parser Error: ' . $response->get_error_message());
             return false;
         }
 
@@ -120,12 +116,10 @@ class GCC_API_Parser
         $http_code = wp_remote_retrieve_response_code($response);
 
         if ($http_code !== 200) {
-            error_log('GCC API Parser: HTTP error ' . $http_code);
             return false;
         }
 
         if (empty($body)) {
-            error_log('GCC API Parser: Empty response body');
             return false;
         }
 
@@ -133,7 +127,6 @@ class GCC_API_Parser
         $data = simplexml_load_string($body);
 
         if ($data === false) {
-            error_log('GCC API Parser: XML parse error');
             return false;
         }
 
@@ -469,7 +462,7 @@ class GCC_API_Parser
         }
 
         if ($added_count > 0) {
-            error_log("GCC API Parser: Added {$added_count} demo products");
+            // added demo products
         }
 
         return $added_count;
@@ -484,7 +477,7 @@ class GCC_API_Parser
         $result = $wpdb->delete($table_products, array('is_demo' => 1));
 
         if ($result) {
-            error_log("GCC API Parser: Deleted {$result} demo products after first sync");
+            // deleted demo products after first sync
         }
 
         return $result;

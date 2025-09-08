@@ -67,7 +67,7 @@ class GoldCalculatorChatbot
             if (file_exists($file_path)) {
                 require_once $file_path;
             } else {
-                error_log("Gold Calculator Chatbot: Required file missing - " . $file);
+                // Required file missing; continue initialization gracefully
             }
         }
 
@@ -97,7 +97,7 @@ class GoldCalculatorChatbot
                 new GCC_Shortcodes();
             }
         } catch (Exception $e) {
-            error_log("Gold Calculator Chatbot initialization error: " . $e->getMessage());
+            // Initialization error suppressed in production
         }
     }
 
@@ -493,16 +493,13 @@ class GoldCalculatorChatbot
             }
 
             $result1 = wp_schedule_event(time(), $price_sync_schedule, 'gcc_price_sync_cron');
-            error_log('GCC Activation: Price sync cron scheduled with ' . $price_sync_schedule . ' - ' . ($result1 ? 'success' : 'failed'));
 
             // Schedule exchange rate sync cron job (twice daily)
             $result2 = wp_schedule_event(time(), 'twicedaily', 'gcc_exchange_sync_cron');
-            error_log('GCC Activation: Exchange sync cron scheduled - ' . ($result2 ? 'success' : 'failed'));
 
             flush_rewrite_rules();
         } catch (Exception $e) {
-            error_log("Gold Calculator Chatbot activation error: " . $e->getMessage());
-            // Don't fail activation, just log the error
+            // Don't fail activation, just note the error silently
         }
     }
 
@@ -546,7 +543,6 @@ class GoldCalculatorChatbot
 
         // Only run if 1 minute has passed since last run
         if (($current_time - $last_run) < 60) { // 60 seconds = 1 minute
-            error_log('GCC Cron Price Sync: Skipped (too recent)');
             return;
         }
 
@@ -560,12 +556,7 @@ class GoldCalculatorChatbot
         $database = new GCC_Database();
         $result = $database->sync_product_prices();
 
-        // Log result for debugging
-        if ($result['success']) {
-            error_log('GCC Cron Price Sync: ' . $result['message']);
-        } else {
-            error_log('GCC Cron Price Sync Failed: ' . $result['message']);
-        }
+        // Result available in options; no logging in production
     }
 
     /**
@@ -580,12 +571,7 @@ class GoldCalculatorChatbot
         $database = new GCC_Database();
         $result = $database->sync_exchange_rate();
 
-        // Log result for debugging
-        if ($result['success']) {
-            error_log('GCC Cron Exchange Rate Sync: ' . $result['message']);
-        } else {
-            error_log('GCC Cron Exchange Rate Sync Failed: ' . $result['message']);
-        }
+        // Result available in options; no logging in production
     }
 }
 

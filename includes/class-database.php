@@ -636,7 +636,6 @@ class GCC_Database
             global $wpdb;
             $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$this->table_products'");
             if (!$table_exists) {
-                error_log('GCC products table does not exist');
                 wp_send_json_error(array('message' => 'Database table not found'));
                 return;
             }
@@ -644,7 +643,6 @@ class GCC_Database
             // Check if we have any products
             $product_count = $wpdb->get_var("SELECT COUNT(*) FROM $this->table_products");
             if ($product_count == 0) {
-                error_log('GCC no products found in database');
                 // Try to create tables and add demo products
                 $this->create_tables();
                 $this->add_demo_products_on_activation();
@@ -654,7 +652,6 @@ class GCC_Database
 
             wp_send_json_success($products);
         } catch (Exception $e) {
-            error_log('GCC get_products_ajax error: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Server error occurred: ' . $e->getMessage()));
         }
     }
@@ -673,7 +670,6 @@ class GCC_Database
             global $wpdb;
             $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$this->table_questions'");
             if (!$table_exists) {
-                error_log('GCC questions table does not exist');
                 // Try to create tables
                 $this->create_tables();
             }
@@ -681,7 +677,6 @@ class GCC_Database
             // Check if we have any questions
             $question_count = $wpdb->get_var("SELECT COUNT(*) FROM $this->table_questions");
             if ($question_count == 0) {
-                error_log('GCC no questions found in database');
                 // Try to insert default questions
                 $this->insert_default_questions();
             }
@@ -692,7 +687,6 @@ class GCC_Database
 
             wp_send_json_success($questions);
         } catch (Exception $e) {
-            error_log('GCC get_chatbot_questions_ajax error: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Server error occurred: ' . $e->getMessage()));
         }
     }
@@ -709,7 +703,6 @@ class GCC_Database
             global $wpdb;
             $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$this->table_questions'");
             if (!$table_exists) {
-                error_log('GCC questions table does not exist');
                 // Try to create tables
                 $this->create_tables();
             }
@@ -717,7 +710,6 @@ class GCC_Database
             // Check if we have any questions
             $question_count = $wpdb->get_var("SELECT COUNT(*) FROM $this->table_questions");
             if ($question_count == 0) {
-                error_log('GCC no questions found in database');
                 // Try to insert default questions
                 $this->insert_default_questions();
             }
@@ -727,7 +719,6 @@ class GCC_Database
 
             wp_send_json_success($questions);
         } catch (Exception $e) {
-            error_log('GCC get_all_chatbot_questions_ajax error: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Server error occurred: ' . $e->getMessage()));
         }
     }
@@ -757,18 +748,12 @@ class GCC_Database
 
             wp_send_json_success($result);
         } catch (Exception $e) {
-            error_log('GCC calculate_optimal_products_ajax error: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Server error occurred: ' . $e->getMessage()));
         }
     }
 
     public function submit_contact_ajax()
     {
-        //         $fp = fopen(__DIR__ . '/xxxx.txt', 'a');
-        //         fwrite($fp, print_r('submit_contact_ajax', true) . '
-        // ================================
-        // ');
-        //         fclose($fp);
         try {
             // Check nonce only if it's provided
             if (isset($_POST['nonce']) && !empty($_POST['nonce'])) {
@@ -810,7 +795,6 @@ class GCC_Database
                 wp_send_json_error(array('message' => 'Failed to save contact'));
             }
         } catch (Exception $e) {
-            error_log('GCC submit_contact_ajax error: ' . $e->getMessage());
             wp_send_json_error(array('message' => 'Server error occurred: ' . $e->getMessage()));
         }
     }
@@ -1063,7 +1047,7 @@ class GCC_Database
         }
 
         if ($added_count > 0) {
-            error_log("GCC Database: Added {$added_count} default personas on activation");
+            // Added default personas on activation
         }
     }
 
@@ -1293,7 +1277,7 @@ class GCC_Database
         }
 
         if ($added_count > 0) {
-            error_log("GCC Database: Added {$added_count} default questions on activation");
+            // Added default questions on activation
         }
     }
 
@@ -1367,7 +1351,6 @@ class GCC_Database
         // Check if all required variables are present
         foreach ($variables as $var) {
             if (!isset($user_answers[$var])) {
-                error_log("GCC Condition '$condition_logic' requires variable '$var' which is not set");
                 return false;
             }
         }
@@ -1387,10 +1370,8 @@ class GCC_Database
             $result = @eval("return $condition;");
             return $result === true;
         } catch (Exception $e) {
-            error_log("Question condition evaluation error: " . $e->getMessage() . " for condition: " . $condition);
             return true; // Default to showing the question if evaluation fails
         } catch (ParseError $e) {
-            error_log("Question condition parse error: " . $e->getMessage() . " for condition: " . $condition);
             return true; // Default to showing the question if evaluation fails
         }
     }
@@ -1889,22 +1870,18 @@ class GCC_Database
      */
     public function sync_product_prices()
     {
-        error_log('GCC Price Sync: Starting product price synchronization');
 
         $api_url = get_option('gcc_api_url', '');
         if (empty($api_url)) {
             $error_message = 'No API URL configured';
-            error_log('GCC Price Sync ERROR: ' . $error_message);
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Price Sync: Using API URL: ' . $api_url);
+        
 
         // Fetch data from API
-        error_log('GCC Price Sync: Making API request...');
         $response = wp_remote_get($api_url, array(
             'timeout' => 120,
             'headers' => array(
@@ -1916,7 +1893,6 @@ class GCC_Database
         if (is_wp_error($response)) {
             $error_message = 'API request failed: ' . $response->get_error_message();
             $error_code = $response->get_error_code();
-            error_log('GCC Price Sync ERROR: ' . $error_message . ' (Code: ' . $error_code . ')');
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
@@ -1926,36 +1902,27 @@ class GCC_Database
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code !== 200) {
             $error_message = 'API returned HTTP ' . $response_code . ' status code';
-            error_log('GCC Price Sync ERROR: ' . $error_message);
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Price Sync: API request successful (HTTP ' . $response_code . ')');
+        
 
         $body = wp_remote_retrieve_body($response);
         if (empty($body)) {
             $error_message = 'Empty response body from API';
-            error_log('GCC Price Sync ERROR: ' . $error_message);
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Price Sync: Response body length: ' . strlen($body) . ' characters');
-        error_log('--------------');
-        error_log($body);
-        error_log('--------------');
+        
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $json_error = json_last_error_msg();
             $error_message = 'Invalid JSON response from API: ' . $json_error;
-            error_log('GCC Price Sync ERROR: ' . $error_message);
-            error_log('GCC Price Sync ERROR: Response body (first 500 chars): ' . substr($body, 0, 500));
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
@@ -1964,8 +1931,6 @@ class GCC_Database
 
         if (!is_array($data)) {
             $error_message = 'Expected array response from API, got: ' . gettype($data);
-            error_log('GCC Price Sync ERROR: ' . $error_message);
-            error_log('GCC Price Sync ERROR: Data content: ' . print_r($data, true));
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
@@ -1974,14 +1939,13 @@ class GCC_Database
 
         if (empty($data)) {
             $error_message = 'Empty data array from API';
-            error_log('GCC Price Sync ERROR: ' . $error_message);
             update_option('gcc_last_sync_status', 'error');
             update_option('gcc_last_sync_message', $error_message);
             update_option('gcc_last_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
 
-        error_log('GCC Price Sync: Processing ' . count($data) . ' products from API');
+        
 
         global $wpdb;
         $updated_count = 0;
@@ -1995,8 +1959,7 @@ class GCC_Database
                 if (!isset($api_product['product_id'])) $missing_fields[] = 'product_id';
                 if (!isset($api_product['selling_price'])) $missing_fields[] = 'selling_price';
                 if (!isset($api_product['regular_price'])) $missing_fields[] = 'regular_price';
-                error_log('GCC Price Sync ERROR: Product at index ' . $index . ' missing required fields: ' . implode(', ', $missing_fields));
-                error_log('GCC Price Sync ERROR: Product data: ' . print_r($api_product, true));
+                
                 $error_count++;
                 continue;
             }
@@ -2007,13 +1970,11 @@ class GCC_Database
             $purchase_price = isset($api_product['purchase_price']) ? floatval($api_product['purchase_price']) : $selling_price;
 
             if ($external_id <= 0) {
-                error_log('GCC Price Sync ERROR: Invalid product_id: ' . $api_product['product_id']);
                 $error_count++;
                 continue;
             }
 
             if ($selling_price <= 0 || $regular_price <= 0) {
-                error_log('GCC Price Sync ERROR: Invalid prices for product ' . $external_id . ' - selling: ' . $selling_price . ', regular: ' . $regular_price);
                 $error_count++;
                 continue;
             }
@@ -2033,19 +1994,15 @@ class GCC_Database
 
             if ($result !== false && $result > 0) {
                 $updated_count++;
-                error_log("GCC Price Sync SUCCESS: Updated product external_id {$external_id} - regular_price: {$regular_price}, selling_price: {$selling_price}");
             } elseif ($result === false) {
                 $wpdb_error = $wpdb->last_error ? $wpdb->last_error : 'Unknown database error';
-                error_log("GCC Price Sync ERROR: Database update failed for product external_id {$external_id} - Error: {$wpdb_error}");
                 $error_count++;
             } elseif ($result === 0) {
                 // Check if product exists but no changes were needed or product not found
                 $existing_product = $wpdb->get_row($wpdb->prepare("SELECT id, price, price_avans FROM {$this->table_products} WHERE external_id = %d", $external_id));
                 if (!$existing_product) {
-                    error_log("GCC Price Sync WARNING: Product with external_id {$external_id} not found in database");
                     $not_found_count++;
                 } else {
-                    error_log("GCC Price Sync INFO: No changes needed for product external_id {$external_id} (prices already current)");
                     $skipped_count++;
                 }
             }
@@ -2071,7 +2028,6 @@ class GCC_Database
         }
 
         update_option('gcc_last_sync_message', $message);
-        error_log('GCC Price Sync COMPLETED: ' . $message);
 
         return array(
             'success' => true,
@@ -2100,13 +2056,10 @@ class GCC_Database
      */
     public function sync_exchange_rate()
     {
-        error_log('GCC Exchange Rate Sync: Starting exchange rate synchronization');
 
         $api_url = 'https://radoviutoku.com/zs-xml';
-        error_log('GCC Exchange Rate Sync: Using API URL: ' . $api_url);
 
         // Fetch data from API
-        error_log('GCC Exchange Rate Sync: Making API request...');
         $response = wp_remote_get($api_url, array(
             'timeout' => 120,
             'headers' => array(
@@ -2118,7 +2071,6 @@ class GCC_Database
         if (is_wp_error($response)) {
             $error_message = 'Exchange rate API request failed: ' . $response->get_error_message();
             $error_code = $response->get_error_code();
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message . ' (Code: ' . $error_code . ')');
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
@@ -2128,33 +2080,28 @@ class GCC_Database
         $response_code = wp_remote_retrieve_response_code($response);
         if ($response_code !== 200) {
             $error_message = 'Exchange rate API returned HTTP ' . $response_code . ' status code';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
 
-        error_log('GCC Exchange Rate Sync: API request successful (HTTP ' . $response_code . ')');
+        
 
         $body = wp_remote_retrieve_body($response);
         if (empty($body)) {
             $error_message = 'Empty response body from exchange rate API';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Exchange Rate Sync: Response body length: ' . strlen($body) . ' characters');
+        
         $data = json_decode($body, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $json_error = json_last_error_msg();
             $error_message = 'Invalid JSON response from exchange rate API: ' . $json_error;
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
-            error_log('GCC Exchange Rate Sync ERROR: Response body (first 500 chars): ' . substr($body, 0, 500));
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
@@ -2163,23 +2110,18 @@ class GCC_Database
 
         if (!is_array($data)) {
             $error_message = 'Expected array response from exchange rate API, got: ' . gettype($data);
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
-            error_log('GCC Exchange Rate Sync ERROR: Data content: ' . print_r($data, true));
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Exchange Rate Sync: Processing API response data');
+        
 
         // Extract EUR/RSD rate from the nested structure
         $eur_rsd_rate = null;
 
         if (!isset($data['sale'])) {
             $error_message = 'Missing "sale" section in API response';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
-            error_log('GCC Exchange Rate Sync ERROR: Available keys: ' . implode(', ', array_keys($data)));
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
@@ -2188,8 +2130,6 @@ class GCC_Database
 
         if (!isset($data['sale']['spot'])) {
             $error_message = 'Missing "spot" section in API response';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
-            error_log('GCC Exchange Rate Sync ERROR: Available sale keys: ' . implode(', ', array_keys($data['sale'])));
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
@@ -2198,47 +2138,39 @@ class GCC_Database
 
         if (!isset($data['sale']['spot']['item']) || !is_array($data['sale']['spot']['item'])) {
             $error_message = 'Missing or invalid "item" array in API response';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message);
             if (isset($data['sale']['spot'])) {
-                error_log('GCC Exchange Rate Sync ERROR: Available spot keys: ' . implode(', ', array_keys($data['sale']['spot'])));
+                // spot keys debug suppressed
             }
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
             return array('success' => false, 'message' => $error_message);
         }
-
-        error_log('GCC Exchange Rate Sync: Found ' . count($data['sale']['spot']['item']) . ' items to process');
+        
 
         foreach ($data['sale']['spot']['item'] as $index => $item) {
             if (!isset($item['@attributes'])) {
-                error_log('GCC Exchange Rate Sync WARNING: Item at index ' . $index . ' missing @attributes');
                 continue;
             }
 
             if (!isset($item['@attributes']['name'])) {
-                error_log('GCC Exchange Rate Sync WARNING: Item at index ' . $index . ' missing name attribute');
                 continue;
             }
 
             $item_name = $item['@attributes']['name'];
-            error_log('GCC Exchange Rate Sync: Processing item: ' . $item_name);
 
             if ($item_name === 'EURRSD') {
                 if (!isset($item['@attributes']['value'])) {
-                    error_log('GCC Exchange Rate Sync ERROR: EURRSD item missing value attribute');
                     continue;
                 }
 
                 $eur_rsd_rate = floatval($item['@attributes']['value']);
-                error_log('GCC Exchange Rate Sync SUCCESS: Found EUR/RSD rate: ' . $eur_rsd_rate);
                 break;
             }
         }
 
         if ($eur_rsd_rate === null || $eur_rsd_rate <= 0) {
             $error_message = 'EUR/RSD rate not found or invalid in API response';
-            error_log('GCC Exchange Rate Sync ERROR: ' . $error_message . ' (rate: ' . $eur_rsd_rate . ')');
             update_option('gcc_last_exchange_sync_status', 'error');
             update_option('gcc_last_exchange_sync_message', $error_message);
             update_option('gcc_last_exchange_sync_time', date('Y-m-d H:i:s'));
@@ -2247,17 +2179,16 @@ class GCC_Database
 
         // Update exchange rate settings
         $previous_rate = get_option('gcc_exchange_rate', 0);
-        error_log('GCC Exchange Rate Sync: Updating rate from ' . $previous_rate . ' to ' . $eur_rsd_rate);
 
         $rate_updated = update_option('gcc_exchange_rate', $eur_rsd_rate);
         $display_updated = update_option('gcc_exchange_rate_display', 'EUR/RSD: ' . number_format($eur_rsd_rate, 2));
 
         if (!$rate_updated && get_option('gcc_exchange_rate') !== $eur_rsd_rate) {
-            error_log('GCC Exchange Rate Sync ERROR: Failed to update exchange rate option');
+            // failed to update option
         }
 
         if (!$display_updated && get_option('gcc_exchange_rate_display') !== ('EUR/RSD: ' . number_format($eur_rsd_rate, 2))) {
-            error_log('GCC Exchange Rate Sync ERROR: Failed to update exchange rate display option');
+            // failed to update display option
         }
 
         // Update sync information
@@ -2275,8 +2206,6 @@ class GCC_Database
 
         $message = "Exchange rate updated to EUR/RSD: " . number_format($eur_rsd_rate, 4) . $rate_change;
         update_option('gcc_last_exchange_sync_message', $message);
-
-        error_log('GCC Exchange Rate Sync COMPLETED: ' . $message);
 
         return array(
             'success' => true,

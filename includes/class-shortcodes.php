@@ -285,7 +285,6 @@ class GCC_Shortcodes
                         }
                     })
                     .catch(error => {
-                        console.error('Error fetching products:', error);
                         gccAddMessage(chatId, 'Greška pri učitavanju proizvoda. Molimo pokušajte ponovo.');
                         gccShowContactModal(chatId);
                     });
@@ -518,7 +517,6 @@ class GCC_Shortcodes
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
                         alert('Došlo je do greške. Molimo pokušajte ponovo.');
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Pošalji zahtev';
@@ -685,7 +683,6 @@ class GCC_Shortcodes
         $password = get_option('gcc_mailtrap_password');
 
         if (empty($username) || empty($password)) {
-            error_log('GCC Mailtrap: Missing username or password');
             // Fallback to wp_mail
             wp_mail($to, $subject, $message);
             return;
@@ -706,19 +703,16 @@ class GCC_Shortcodes
 
             // Enable SMTP debugging for development
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                $phpmailer->SMTPDebug = 2;
-                $phpmailer->Debugoutput = function ($str, $level) {
-                    error_log("SMTP Debug: $str");
-                };
+                $phpmailer->SMTPDebug = 0;
             }
         });
 
         $result = wp_mail($to, $subject, $message);
 
         if (!$result) {
-            error_log('GCC Mailtrap: Failed to send email');
+            // mail sending failed
         } else {
-            error_log('GCC Mailtrap: Email sent successfully');
+            // mail sent successfully
         }
 
         return $result;

@@ -65,12 +65,10 @@ jQuery(document).ready(function ($) {
             }
           }, 1500);
         } else {
-          console.error("Error loading questions:", response.data);
           addBotMessage("Izvinite, došlo je do greške pri učitavanju pitanja. Molimo pokušajte ponovo.");
         }
       },
       error: function (xhr, status, error) {
-        console.error("AJAX error loading questions:", error);
         addBotMessage("Izvinite, došlo je do greške pri učitavanju pitanja. Molimo pokušajte ponovo.");
       },
     });
@@ -78,13 +76,10 @@ jQuery(document).ready(function ($) {
 
   // Client-side condition evaluation
   function evaluateCondition(condition, userAnswers) {
-    console.log("=== CONDITION EVALUATION ===");
-    console.log("Original condition:", condition);
-    console.log("User answers:", userAnswers);
+    
 
     // Handle empty or null conditions
     if (!condition || typeof condition !== "string" || condition.trim() === "") {
-      console.log("No condition, returning true");
       return true;
     }
 
@@ -93,7 +88,7 @@ jQuery(document).ready(function ($) {
 
     // Handle escaped quotes from database
     evaluatedCondition = evaluatedCondition.replace(/\\"/g, '"');
-    console.log("After cleaning escaped quotes:", evaluatedCondition);
+    
 
     // Replace each variable with its value
     for (const [key, value] of Object.entries(userAnswers)) {
@@ -111,11 +106,10 @@ jQuery(document).ready(function ($) {
         replacement = JSON.stringify(value);
       }
 
-      console.log(`Replacing ${key} with ${replacement}`);
       evaluatedCondition = evaluatedCondition.replace(regex, replacement);
     }
 
-    console.log("After variable replacement:", evaluatedCondition);
+    
 
     // Check if there are still unresolved variables
     // Look for words that are not inside quotes and not JavaScript keywords
@@ -125,7 +119,6 @@ jQuery(document).ready(function ($) {
     const actualUnresolved = unresolvedVars ? unresolvedVars.filter((v) => !jsKeywords.includes(v)) : [];
 
     if (actualUnresolved && actualUnresolved.length > 0) {
-      console.log("Unresolved variables found:", actualUnresolved);
       return false;
     }
 
@@ -133,37 +126,30 @@ jQuery(document).ready(function ($) {
     evaluatedCondition = evaluatedCondition.replace(/\s*==\s*/g, " === ");
     evaluatedCondition = evaluatedCondition.replace(/\s*!=\s*/g, " !== ");
 
-    console.log("Final evaluated condition:", evaluatedCondition);
+    
 
     try {
       // Use Function constructor to safely evaluate
       const result = Function(`"use strict"; return (${evaluatedCondition})`)();
-      console.log("Evaluation result:", result);
       return Boolean(result);
     } catch (e) {
-      console.error("Error evaluating condition:", condition, e, "Evaluated:", evaluatedCondition);
       return false;
     }
   }
 
   // Find next valid question based on conditions and answered status
   function showNextValidQuestion() {
-    console.log("=== FINDING NEXT VALID QUESTION ===");
-    console.log("Current question index:", chatbotState.currentQuestion);
-    console.log("Total questions:", questions.length);
+    
 
     for (let i = chatbotState.currentQuestion; i < questions.length; i++) {
       const question = questions[i];
       const attributes = JSON.parse(question.attributes || "{}");
 
-      console.log(`\nChecking question ${i}: ${question.question}`);
-      console.log("Question condition:", question.condition_logic);
-      console.log("Question attributes:", attributes);
+      
 
       // Check if condition is met
       const conditionMet = evaluateCondition(question.condition_logic, chatbotState.userAnswers);
       if (!conditionMet) {
-        console.log("Condition not met for question:", question.question);
         continue; // Skip this question, condition not met
       }
 
@@ -176,10 +162,9 @@ jQuery(document).ready(function ($) {
       if (attributes.weight_preference && chatbotState.userAnswers.weight_preference) isAnswered = true;
       if (attributes.high_budget_action && chatbotState.userAnswers.high_budget_action) isAnswered = true;
 
-      console.log("Question already answered:", isAnswered);
+      
 
       if (!isAnswered) {
-        console.log("Showing question:", i);
         chatbotState.currentQuestion = i;
         showQuestion(i);
         return;
@@ -187,7 +172,6 @@ jQuery(document).ready(function ($) {
     }
 
     // All questions answered or no more questions, load products
-    console.log("No more valid questions, loading products");
     setTimeout(() => {
       addBotMessage("Odlično! Sada ću vam pripremiti predlog proizvoda za vaš budžet.");
       loadProducts();
@@ -199,12 +183,7 @@ jQuery(document).ready(function ($) {
     // Show loading
     addBotMessage("Molim sačekajte, priprema se ponuda... ⏳");
 
-    console.log("=== LOADING PRODUCTS ===");
-    console.log("Budget:", chatbotState.budget);
-    console.log("Product type:", chatbotState.product_type);
-    console.log("Combo percentage:", chatbotState.combo_percentage);
-    console.log("Weight preference:", chatbotState.weight_preference);
-    console.log("Delivery method:", chatbotState.delivery_method);
+    
 
     $.ajax({
       url: (typeof gold_suggestions_ajax !== "undefined" && gold_suggestions_ajax.ajax_url) || (typeof gcc_ajax !== "undefined" && gcc_ajax.ajax_url) || "/wp-admin/admin-ajax.php",
@@ -221,13 +200,11 @@ jQuery(document).ready(function ($) {
       dataType: "json",
       success: function (response) {
         if (response.success) {
-          console.log("Products calculated:", response.data);
           chatbotState.selectedProducts = response.data.products;
           chatbotState.totalValue = response.data.total_value;
           calculateTotal(); // Recalculate total to ensure consistency
           showProductSelection();
         } else {
-          console.error("Product calculation failed:", response.data);
           addBotMessage("Izvinite, došlo je do greške. Molimo pokušajte ponovo.");
         }
       },
