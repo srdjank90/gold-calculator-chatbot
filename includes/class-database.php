@@ -1605,42 +1605,47 @@ class GCC_Database
             );
         }
 
-        // Apply weight preference sorting
-        if ($weight_preference === 'lighter') {
-            // Sort by weight ascending (lighter first)
-            usort($products, function ($a, $b) {
-                $weight_a = $a->weight;
-                $weight_b = $b->weight;
-                return $weight_a <=> $weight_b;
-            });
-        } elseif ($weight_preference === 'heavier') {
-            // Sort by weight descending (heavier first)
-            usort($products, function ($a, $b) {
-                $weight_a = $a->weight;
-                $weight_b = $b->weight;
-                return $weight_b <=> $weight_a;
-            });
-        } else {
-            // Default: sort by price efficiency (price per gram)
-            usort($products, function ($a, $b) {
-                $weight_a = isset($a->weight) ? $a->weight : 0;
-                $weight_b = isset($b->weight) ? $b->weight : 0;
+        $products = array_values($products);
 
-                // Always set final_price fallback
-                if (!isset($a->final_price)) {
-                    $a->final_price = isset($a->price) ? $a->price : 0;
-                }
-                if (!isset($b->final_price)) {
-                    $b->final_price = isset($b->price) ? $b->price : 0;
-                }
+        // Apply bias for weight preference but add jitter for randomness
+        $randomized_products = array();
+        foreach ($products as $product) {
+            $weight = isset($product->weight) ? floatval($product->weight) : 0;
+            if ($weight <= 0) {
+                $weight = null;
+            }
 
-                // Prevent division by zero
-                $efficiency_a = ($weight_a > 0) ? ($a->final_price / $weight_a) : PHP_FLOAT_MAX;
-                $efficiency_b = ($weight_b > 0) ? ($b->final_price / $weight_b) : PHP_FLOAT_MAX;
+            $jitter = mt_rand(-100, 100) / 1000; // small random noise
 
-                return $efficiency_a <=> $efficiency_b;
-            });
+            if ($weight_preference === 'lighter') {
+                $base_key = ($weight !== null) ? $weight : 1e6;
+            } elseif ($weight_preference === 'heavier') {
+                $base_key = ($weight !== null) ? (-$weight) : 0;
+            } else {
+                $base_key = ($weight !== null && $weight > 0)
+                    ? ($product->final_price / $weight)
+                    : 1e6;
+            }
+
+            $randomized_products[] = array(
+                'product' => $product,
+                'sort_key' => $base_key + $jitter
+            );
         }
+
+        usort($randomized_products, function ($a, $b) {
+            return $a['sort_key'] <=> $b['sort_key'];
+        });
+
+        $products = array_map(function ($item) {
+            return $item['product'];
+        }, $randomized_products);
+
+        // Secondary ordering by price ascending to finish remaining budget when needed
+        $price_sorted_products = $products;
+        usort($price_sorted_products, function ($a, $b) {
+            return $a->final_price <=> $b->final_price;
+        });
 
         // Set defaults for exchange rate if not provided
         if ($exchange_rate === null) {
@@ -1650,85 +1655,127 @@ class GCC_Database
             $budget_eur = $budget_rsd / $exchange_rate;
         }
 
-        // Use diverse product selection algorithm instead of greedy (all calculations in RSD)
         $selected_products = array();
         $total_value_rsd = 0;
-        $target_budget_rsd = $budget_rsd * 0.95; // Target 95% of budget to leave room for variety
+        $remaining_budget_rsd = $budget_rsd;
 
-        // Add randomization to create different offers each time
-        shuffle($products);
-
-        // Limit to top products to create variety instead of using all
-        $max_products_to_consider = min(count($products), 6);
-        $products_to_use = array_slice($products, 0, $max_products_to_consider);
-
-        foreach ($products_to_use as $product) {
-            $remaining_budget_rsd = $budget_rsd - $total_value_rsd;
-
-            // Skip if product is too expensive
-            if ($product->final_price > $remaining_budget_rsd) {
+        // Primary pass: use randomized order to build a base combination
+        foreach ($products as $product) {
+            if ($product->final_price <= 0 || $product->final_price > $remaining_budget_rsd) {
                 continue;
             }
 
-            // Calculate how many of this product we can afford
-            $max_quantity = floor($remaining_budget_rsd / $product->final_price);
+            $quantity = floor($remaining_budget_rsd / $product->final_price);
+            if ($quantity <= 0) {
+                continue;
+            }
 
-            if ($max_quantity > 0) {
-                // Use strategic quantity instead of maximum to create variety
-                $strategic_quantity = $this->calculate_strategic_quantity_for_database($max_quantity, $remaining_budget_rsd, $product->final_price, count($products_to_use));
-                $product_total = $strategic_quantity * $product->final_price;
+            // Randomize quantity but keep a significant portion of the affordable amount
+            $random_ratio = mt_rand(60, 100) / 100;
+            $quantity = max(1, (int) floor($quantity * $random_ratio));
+            $quantity = min($quantity, floor($remaining_budget_rsd / $product->final_price));
 
-                if ($strategic_quantity > 0) {
-                    $selected_products[] = array(
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'type' => $product->type,
-                        'weight' => $product->weight,
-                        'final_price' => $product->final_price,
-                        'final_price_eur' => $product->final_price / $exchange_rate,
-                        'quantity' => $strategic_quantity,
-                        'total_price' => $product_total,
-                        'total_price_eur' => $product_total / $exchange_rate
-                    );
+            if ($quantity <= 0) {
+                continue;
+            }
 
-                    $total_value_rsd += $product_total;
-                }
+            $total_price = $quantity * $product->final_price;
+            $this->add_product_selection($selected_products, $product, $quantity, $total_price, $exchange_rate);
+
+            $total_value_rsd += $total_price;
+            $remaining_budget_rsd -= $total_price;
+
+            if ($remaining_budget_rsd <= 0) {
+                break;
             }
         }
 
+        // Secondary pass: randomly fill budget until we reach at least 95% (if possible)
+        $target_spend_rsd = $budget_rsd * 0.95;
+        $safety_counter = 0;
+        while ($total_value_rsd < $target_spend_rsd && $remaining_budget_rsd > 0 && $safety_counter < 200) {
+            $affordable_products = array_values(array_filter($price_sorted_products, function ($product) use ($remaining_budget_rsd) {
+                return $product->final_price > 0 && $product->final_price <= $remaining_budget_rsd;
+            }));
+
+            if (empty($affordable_products)) {
+                break;
+            }
+
+            $product = $affordable_products[array_rand($affordable_products)];
+            $price = $product->final_price;
+            $max_quantity = (int) floor($remaining_budget_rsd / $price);
+
+            if ($max_quantity <= 0) {
+                break;
+            }
+
+            $remaining_to_target = $target_spend_rsd - $total_value_rsd;
+            $max_needed_quantity = ($remaining_to_target > 0)
+                ? (int) floor($remaining_to_target / $price)
+                : 0;
+
+            $quantity_cap = max(1, min($max_quantity, max(1, $max_needed_quantity)));
+            $quantity = ($quantity_cap > 1) ? mt_rand(1, $quantity_cap) : 1;
+
+            $total_price = $quantity * $price;
+            if ($total_price <= 0 || $total_price > $remaining_budget_rsd) {
+                $safety_counter++;
+                continue;
+            }
+
+            $this->add_product_selection($selected_products, $product, $quantity, $total_price, $exchange_rate);
+
+            $total_value_rsd += $total_price;
+            $remaining_budget_rsd -= $total_price;
+            $safety_counter++;
+        }
+
         $total_value_eur = $total_value_rsd / $exchange_rate;
+        $budget_remaining = max(0, $budget_eur - $total_value_eur);
 
         return array(
             'products' => $selected_products,
             'total_value' => $total_value_rsd,
             'total_value_eur' => $total_value_eur,
             'budget_used' => $total_value_eur,
-            'budget_remaining' => $budget_eur - $total_value_eur
+            'budget_remaining' => $budget_remaining
         );
     }
 
-    /**
-     * Calculate strategic quantity for database operations to create variety in offers
-     */
-    private function calculate_strategic_quantity_for_database($max_quantity, $remaining_budget, $item_price, $total_products)
+    private function add_product_selection(&$selected_products, $product, $quantity, $total_price_rsd, $exchange_rate)
     {
-        // For expensive items (> 30% of remaining budget), limit to 1-3 pieces
-        if ($item_price > ($remaining_budget * 0.3)) {
-            return min($max_quantity, rand(1, 3));
+        $product_id = isset($product->id) ? $product->id : null;
+        $product_slug = isset($product->slug) ? $product->slug : '';
+
+        $found_index = null;
+        foreach ($selected_products as $index => $selected) {
+            $matches_id = ($product_id !== null && isset($selected['id']) && $selected['id'] == $product_id);
+            $matches_slug = ($product_id === null && $product_slug !== '' && isset($selected['slug']) && $selected['slug'] === $product_slug);
+
+            if ($matches_id || $matches_slug) {
+                $found_index = $index;
+                break;
+            }
         }
 
-        // For medium items (10-30% of remaining budget), limit to 2-5 pieces
-        if ($item_price > ($remaining_budget * 0.1)) {
-            return min($max_quantity, rand(2, 5));
-        }
-
-        // For cheaper items, allow more but still limit for variety
-        if ($total_products > 4) {
-            // If we have many products, limit each to create more variety
-            return min($max_quantity, rand(3, 10));
+        if ($found_index !== null) {
+            $selected_products[$found_index]['quantity'] += $quantity;
+            $selected_products[$found_index]['total_price'] += $total_price_rsd;
+            $selected_products[$found_index]['total_price_eur'] += $total_price_rsd / $exchange_rate;
         } else {
-            // If we have fewer products, allow more of each
-            return min($max_quantity, rand(6, 15));
+            $selected_products[] = array(
+                'id' => $product->id,
+                'slug' => $product_slug,
+                'name' => $product->name,
+                'type' => $product->type,
+                'weight' => $product->weight,
+                'final_price' => $product->final_price,
+                'final_price_eur' => $product->final_price / $exchange_rate,
+                'quantity' => $quantity,
+                'total_price' => $total_price_rsd,
+                'total_price_eur' => $total_price_rsd / $exchange_rate
+            );
         }
     }
 
