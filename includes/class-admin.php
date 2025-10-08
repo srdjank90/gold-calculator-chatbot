@@ -95,6 +95,7 @@ class GCC_Admin
     public function register_settings()
     {
         register_setting('gcc_settings', 'gcc_exchange_rate');
+        register_setting('gcc_settings', 'gcc_exchange_auto_sync');
         register_setting('gcc_settings', 'gcc_exchange_rate_display');
         register_setting('gcc_settings', 'gcc_bot_personas');
         register_setting('gcc_settings', 'gcc_current_persona');
@@ -208,7 +209,8 @@ class GCC_Admin
                 'high_budget_threshold' => get_option('gcc_high_budget_threshold', 30000),
                 'calendly_url' => get_option('gcc_calendly_url', ''),
                 'user_avatar_image' => get_option('gcc_user_avatar_image', ''),
-                'notification_email' => get_option('gcc_notification_email', get_option('admin_email'))
+                'notification_email' => get_option('gcc_notification_email', get_option('admin_email')),
+                'exchange_auto_sync' => get_option('gcc_exchange_auto_sync', 1)
             );
         } elseif ($current_tab === 'chatbot') {
             $data = array(
@@ -546,6 +548,12 @@ class GCC_Admin
             if (isset($_POST['exchange_rate_display'])) {
                 $settings['gcc_exchange_rate_display'] = sanitize_text_field($_POST['exchange_rate_display']);
             }
+            if (isset($_POST['exchange_auto_sync']) || array_key_exists('exchange_auto_sync', $_POST)) {
+                $settings['gcc_exchange_auto_sync'] = isset($_POST['exchange_auto_sync']) ? 1 : 0;
+            } elseif (isset($_POST['current_tab']) && $_POST['current_tab'] === 'general') {
+                // Checkbox not sent when unchecked; ensure we store 0 on general tab saves
+                $settings['gcc_exchange_auto_sync'] = 0;
+            }
             if (isset($_POST['api_url'])) {
                 $settings['gcc_api_url'] = esc_url_raw($_POST['api_url']);
             }
@@ -634,7 +642,27 @@ class GCC_Admin
                 }
             }
 
-            
+            if (!empty($settings)) {
+                if (array_key_exists('gcc_exchange_auto_sync', $settings)) {
+                    if ($settings['gcc_exchange_auto_sync']) {
+                        if (!wp_next_scheduled('gcc_exchange_sync_cron')) {
+                            wp_schedule_event(time(), 'twicedaily', 'gcc_exchange_sync_cron');
+                        }
+                    } else {
+                        wp_clear_scheduled_hook('gcc_exchange_sync_cron');
+                    }
+                } elseif (isset($_POST['current_tab']) && $_POST['current_tab'] === 'general') {
+                    $auto_sync_current = get_option('gcc_exchange_auto_sync', 1);
+                    if ($auto_sync_current) {
+                        if (!wp_next_scheduled('gcc_exchange_sync_cron')) {
+                            wp_schedule_event(time(), 'twicedaily', 'gcc_exchange_sync_cron');
+                        }
+                    } else {
+                        wp_clear_scheduled_hook('gcc_exchange_sync_cron');
+                    }
+                }
+            }
+
         } catch (Exception $e) {
             throw $e;
         }

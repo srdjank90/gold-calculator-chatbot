@@ -81,6 +81,22 @@ if (!defined('ABSPATH')) {
                         </tr>
                         <tr>
                             <th scope="row">
+                                <label for="exchange_auto_sync">Automatic Exchange Rate Sync</label>
+                            </th>
+                            <td>
+                                <label>
+                                    <input type="checkbox"
+                                        id="exchange_auto_sync"
+                                        name="exchange_auto_sync"
+                                        value="1"
+                                        <?php checked(!empty($data['exchange_auto_sync'])); ?> />
+                                    Enable scheduled updates via cron
+                                </label>
+                                <p class="description">When disabled, the chatbot will use the manual rate entered above.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
                                 <label for="api_url">API Endpoint URL</label>
                             </th>
                             <td>

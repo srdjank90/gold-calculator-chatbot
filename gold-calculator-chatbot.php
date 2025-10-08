@@ -452,6 +452,7 @@ class GoldCalculatorChatbot
                 'api_update_interval' => 300,
                 'high_budget_threshold' => 30000,
                 'calendly_url' => '',
+                'exchange_auto_sync' => 1,
 
                 // New default appearance settings
                 'chatbot_font_family' => 'inherit',
@@ -564,6 +565,10 @@ class GoldCalculatorChatbot
      */
     public function run_exchange_sync()
     {
+        if (!get_option('gcc_exchange_auto_sync', 1)) {
+            return;
+        }
+
         if (!class_exists('GCC_Database')) {
             require_once GCC_PLUGIN_PATH . 'includes/class-database.php';
         }
